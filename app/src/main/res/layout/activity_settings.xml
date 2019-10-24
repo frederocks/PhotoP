@@ -30,6 +30,19 @@
         android:hint="Phone"
         android:layout_marginBottom="20sp"
         android:inputType="number"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/glutenfree"
+        android:onClick="onCheckboxClicked"
+        android:text="Gluten Free" />
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/vegan"
+        android:onClick="onCheckboxClicked"
+        android:text="Vegan" />
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

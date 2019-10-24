@@ -10,8 +10,10 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -40,13 +42,13 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText mNameField, mPhoneField;
 
     private Button mBack, mConfirm;
-
+    private CheckBox mGlutenFree, mVegan;
     private ImageView mProfileImage;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
 
-    private String userId, name, phone, profileImageUrl, userSex;
+    private String userId, name, phone, profileImageUrl, glutenfree, vegan;
 
     private Uri resultUri;
 
@@ -63,7 +65,9 @@ public class SettingsActivity extends AppCompatActivity {
 
         mBack = (Button) findViewById(R.id.back);
         mConfirm = (Button) findViewById(R.id.confirm);
-
+        mGlutenFree = (CheckBox) findViewById(R.id.glutenfree);
+        mVegan = (CheckBox) findViewById(R.id.vegan);
+        Log.d("vegan", mVegan.toString());
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
@@ -107,9 +111,11 @@ public class SettingsActivity extends AppCompatActivity {
                         phone = map.get("phone").toString();
                         mPhoneField.setText(phone);
                     }
-                    if (map.get("sex")!=null){
-                        userSex = map.get("sex").toString();
-
+                    if (map.get("glutenfree")!=null){
+                        glutenfree = map.get("glutenfree").toString();
+                    }
+                    if (map.get("vegan")!=null){
+                        vegan = map.get("vegan").toString();
                     }
                     if (map.get("profileImageUrl")!=null){
                         profileImageUrl = map.get("profileImageUrl").toString();
@@ -144,6 +150,8 @@ public class SettingsActivity extends AppCompatActivity {
         Map userInfo = new HashMap();
         userInfo.put("name", name);
         userInfo.put("phone", phone);
+        userInfo.put("vegan", vegan);
+        userInfo.put("glutenfree", glutenfree);
         mUserDatabase.updateChildren(userInfo);
         if (resultUri != null){
             final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("profileImageUrl").child(userId);
@@ -199,6 +207,35 @@ public class SettingsActivity extends AppCompatActivity {
             final Uri imageUri = data.getData();
             resultUri = imageUri;
             mProfileImage.setImageURI(resultUri);
+        }
+    }
+
+    public void onCheckboxClicked(View view) {
+        // Is the view now checked?
+        boolean checked = ((CheckBox) view).isChecked();
+        // Check which checkbox was clicked
+        switch(view.getId()) {
+            case R.id.glutenfree:
+                if (checked){
+                mUserDatabase.child("glutenfree").setValue(true);
+                }
+                // Put some meat on the sandwich
+            else{
+                    mUserDatabase.child("glutenfree").setValue(false);
+                }
+                // Remove the meat
+                break;
+            case R.id.vegan:
+                if (checked){
+                    mUserDatabase.child("vegan").setValue(true);
+                }
+                // Cheese me
+            else{
+                    mUserDatabase.child("vegan").setValue(false);
+                }
+                // I'm lactose intolerant
+                break;
+            // TODO: Veggie sandwich
         }
     }
 }
