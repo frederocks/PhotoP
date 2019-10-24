@@ -42,13 +42,13 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText mNameField, mPhoneField;
 
     private Button mBack, mConfirm;
-    private CheckBox mGlutenFree, mVegan;
+    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mAmerican, mThai, mSeafood, mMexican;
     private ImageView mProfileImage;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
 
-    private String userId, name, phone, profileImageUrl, glutenfree, vegan;
+    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican;
 
     private Uri resultUri;
 
@@ -65,8 +65,18 @@ public class SettingsActivity extends AppCompatActivity {
 
         mBack = (Button) findViewById(R.id.back);
         mConfirm = (Button) findViewById(R.id.confirm);
+
         mGlutenFree = (CheckBox) findViewById(R.id.glutenfree);
         mVegan = (CheckBox) findViewById(R.id.vegan);
+        mPizza = (CheckBox) findViewById(R.id.pizza);
+        mChinese = (CheckBox) findViewById(R.id.chinese);
+        mAmerican = (CheckBox) findViewById(R.id.american);
+        mThai = (CheckBox) findViewById(R.id.thai);
+        mSeafood = (CheckBox) findViewById(R.id.seafood);
+        mMexican = (CheckBox) findViewById(R.id.mexican);
+
+
+
         Log.d("vegan", mVegan.toString());
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
@@ -113,9 +123,60 @@ public class SettingsActivity extends AppCompatActivity {
                     }
                     if (map.get("glutenfree")!=null){
                         glutenfree = map.get("glutenfree").toString();
+                        if (glutenfree == "true"){
+                            mGlutenFree.setChecked(true);
+                        }
+                        else mGlutenFree.setChecked(false);
+
                     }
                     if (map.get("vegan")!=null){
                         vegan = map.get("vegan").toString();
+                        if (vegan == "true"){
+                            mVegan.setChecked(true);
+                        }
+                        else mVegan.setChecked(false);
+                    }
+                    if (map.get("pizza")!=null){
+                        pizza = map.get("pizza").toString();
+                        if (pizza == "true"){
+                            mPizza.setChecked(true);
+                        }
+                        else mPizza.setChecked(false);
+                    }
+                    if (map.get("chinese")!=null){
+                        chinese = map.get("chinese").toString();
+                        if (chinese == "true"){
+                            mChinese.setChecked(true);
+                        }
+                        else mChinese.setChecked(false);
+                    }
+                    if (map.get("american")!=null){
+                        american = map.get("american").toString();
+                        if (american == "true"){
+                            mAmerican.setChecked(true);
+                        }
+                        else mAmerican.setChecked(false);
+                    }
+                    if (map.get("thai")!=null){
+                        thai = map.get("thai").toString();
+                        if (thai == "true"){
+                            mThai.setChecked(true);
+                        }
+                        else mThai.setChecked(false);
+                    }
+                    if (map.get("seafood")!=null){
+                        seafood = map.get("seafood").toString();
+                        if (seafood == "true"){
+                            mSeafood.setChecked(true);
+                        }
+                        else mSeafood.setChecked(false);
+                    }
+                    if (map.get("mexican")!=null){
+                        mexican = map.get("mexican").toString();
+                        if (mexican == "true"){
+                            mMexican.setChecked(true);
+                        }
+                        else mMexican.setChecked(false);
                     }
                     if (map.get("profileImageUrl")!=null){
                         profileImageUrl = map.get("profileImageUrl").toString();
@@ -150,8 +211,6 @@ public class SettingsActivity extends AppCompatActivity {
         Map userInfo = new HashMap();
         userInfo.put("name", name);
         userInfo.put("phone", phone);
-        userInfo.put("vegan", vegan);
-        userInfo.put("glutenfree", glutenfree);
         mUserDatabase.updateChildren(userInfo);
         if (resultUri != null){
             final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("profileImageUrl").child(userId);
@@ -219,23 +278,52 @@ public class SettingsActivity extends AppCompatActivity {
                 if (checked){
                 mUserDatabase.child("glutenfree").setValue(true);
                 }
-                // Put some meat on the sandwich
             else{
                     mUserDatabase.child("glutenfree").setValue(false);
                 }
-                // Remove the meat
                 break;
             case R.id.vegan:
                 if (checked){
                     mUserDatabase.child("vegan").setValue(true);
                 }
-                // Cheese me
-            else{
-                    mUserDatabase.child("vegan").setValue(false);
-                }
-                // I'm lactose intolerant
+            else mUserDatabase.child("vegan").setValue(false);
                 break;
-            // TODO: Veggie sandwich
+            case R.id.pizza:
+                if (checked){
+                    mUserDatabase.child("pizza").setValue(true);
+                }
+                else mUserDatabase.child("pizza").setValue(false);
+                break;
+            case R.id.chinese:
+                if (checked){
+                    mUserDatabase.child("chinese").setValue(true);
+                }
+                else mUserDatabase.child("chinese").setValue(false);
+                break;
+            case R.id.american:
+                if (checked){
+                    mUserDatabase.child("american").setValue(true);
+                }
+                else mUserDatabase.child("american").setValue(false);
+                break;
+            case R.id.thai:
+                if (checked){
+                    mUserDatabase.child("thai").setValue(true);
+                }
+                else mUserDatabase.child("thai").setValue(false);
+                break;
+            case R.id.seafood:
+                if (checked){
+                    mUserDatabase.child("seafood").setValue(true);
+                }
+                else mUserDatabase.child("seafood").setValue(false);
+                break;
+            case R.id.mexican:
+                if (checked){
+                    mUserDatabase.child("mexican").setValue(true);
+                }
+                else mUserDatabase.child("mexican").setValue(false);
+                break;
         }
     }
 }

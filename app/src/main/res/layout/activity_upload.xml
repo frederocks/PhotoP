@@ -9,8 +9,8 @@
     android:padding="20sp">
 
     <ImageView
-        android:layout_width="100sp"
-        android:layout_height="100sp"
+        android:layout_width="200sp"
+        android:layout_height="200sp"
         android:id="@+id/foodPhoto"
         android:src="@mipmap/ic_launcher"
         android:layout_gravity="center"
@@ -23,14 +23,78 @@
         android:background="@null"
         android:hint="Name"
         android:layout_marginBottom="20sp"/>
-    <EditText
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/location"
-        android:background="@null"
-        android:hint="Location"
+        android:layout_marginBottom="20sp">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/pizza"
+
+            android:text="Pizza" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/chinese"
+
+            android:text="Chinese" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/glutenfree"
+
+            android:text="Gluten Free" />
+
+        <CheckBox
+            android:id="@+id/vegan"
+            android:layout_width="107dp"
+            android:layout_height="wrap_content"
+
+            android:text="Vegan" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20sp">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/american"
+
+            android:text="American" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/thai"
+
+            android:text="Thai" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/seafood"
+
+            android:text="Seafood" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/mexican"
+
+            android:text="Mexican" />
+
+    </LinearLayout>
+    <RatingBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="20sp"
-        android:inputType="number"/>
+        android:layout_gravity="center"
+        android:id="@+id/rating"
+        android:numStars="5">
+
+    </RatingBar>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

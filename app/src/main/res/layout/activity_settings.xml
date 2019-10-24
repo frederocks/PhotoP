@@ -30,19 +30,82 @@
         android:hint="Phone"
         android:layout_marginBottom="20sp"
         android:inputType="number"/>
-    <CheckBox
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/glutenfree"
-        android:onClick="onCheckboxClicked"
-        android:text="Gluten Free" />
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/vegan"
-        android:onClick="onCheckboxClicked"
-        android:text="Vegan" />
+        android:layout_marginBottom="20sp">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/pizza"
+            android:onClick="onCheckboxClicked"
+            android:text="Pizza" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/chinese"
+            android:onClick="onCheckboxClicked"
+            android:text="Chinese" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/glutenfree"
+            android:onClick="onCheckboxClicked"
+            android:text="Gluten Free" />
 
+        <CheckBox
+            android:id="@+id/vegan"
+            android:layout_width="107dp"
+            android:layout_height="wrap_content"
+            android:onClick="onCheckboxClicked"
+            android:text="Vegan" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20sp">
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/american"
+            android:onClick="onCheckboxClicked"
+            android:text="American" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/thai"
+            android:onClick="onCheckboxClicked"
+            android:text="Thai" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/seafood"
+            android:onClick="onCheckboxClicked"
+            android:text="Seafood" />
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/mexican"
+            android:onClick="onCheckboxClicked"
+            android:text="Mexican" />
+
+    </LinearLayout>
+<SeekBar
+    android:id="@+id/seekBar1"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentTop="true"
+    android:layout_marginTop="26dp"
+    android:layout_gravity="center"
+    android:layout_marginBottom="30dp"
+    android:max="10"
+    >
+
+</SeekBar>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

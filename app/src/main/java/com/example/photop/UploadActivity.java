@@ -23,6 +23,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -59,7 +60,6 @@ class Upload {
 
     public Upload(String name, String userId, String uploadUri) {
         this.name = name;
-
         this.userId = userId;
         this.uploadUri = uploadUri;
 
@@ -75,12 +75,12 @@ public class UploadActivity extends AppCompatActivity {
 
     String[] mLatLng = {Double.toString(lat), Double.toString(lng)};
     //LatLng mFoodLatLng = new Array(lat, lng);
-
+    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mAmerican, mThai, mSeafood, mMexican;
     private Button mBack, mConfirm;
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUploadsDatabase, mUserDatabase, mGeoFireDatabase;
-    private String userId, name, location, foodImageUrl;
+    private String userId, name, location, foodImageUrl,glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican;
     private Uri resultUri;
 
     @Override
@@ -130,7 +130,7 @@ public class UploadActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void saveFoodInformation() {
         name = mNameField.getText().toString();
-        Log.d("name", name);
+
         String foodSaveUTC = String.valueOf(System.currentTimeMillis());
         final DatabaseReference newUploadRef = mUploadsDatabase.push();
         String newID = newUploadRef.getKey();
@@ -228,6 +228,7 @@ public class UploadActivity extends AppCompatActivity {
             mFoodPhoto.setImageURI(resultUri);
         }
     }
+
     public boolean checkLocationPermission() {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
