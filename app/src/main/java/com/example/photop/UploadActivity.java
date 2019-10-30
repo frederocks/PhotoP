@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -56,17 +57,36 @@ class Upload {
 
     public String userId;
     public String uploadUri;
+    public String glutenfree;
+    public String vegan;
+    public String pizza;
+    public String chinese;
+    public String american;
+    public String thai;
+    public String seafood;
+    public String mexican;
+
     public GeoLocation geoLocation;
 
-    public Upload(String name, String userId, String uploadUri) {
+    public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String american, String thai, String seafood, String mexican) {
         this.name = name;
         this.userId = userId;
         this.uploadUri = uploadUri;
+        this.glutenfree = glutenfree;
+        this.vegan = vegan;
+        this.pizza = pizza;
+        this.chinese = chinese;
+        this.american = american;
+        this.thai = thai;
+        this.seafood = seafood;
+        this.mexican = mexican;
+
 
     }
 }
 
 public class UploadActivity extends AppCompatActivity {
+    public static final int CAMERA_PIC_REQUEST = 2;
     private EditText mNameField;
     private ImageView mFoodPhoto;
     double lat = 43.547302;
@@ -80,8 +100,9 @@ public class UploadActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUploadsDatabase, mUserDatabase, mGeoFireDatabase;
-    private String userId, name, location, foodImageUrl,glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican;
+    private String userId, name, location, foodImageUrl,glutenfree = "false", vegan= "false", pizza= "false", chinese= "false", american= "false", thai= "false", seafood= "false", mexican= "false";
     private Uri resultUri;
+    private Bitmap image;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +113,91 @@ public class UploadActivity extends AppCompatActivity {
         mFoodPhoto = findViewById(R.id.foodPhoto);
         mBack = findViewById(R.id.back);
         mConfirm = findViewById(R.id.confirm);
+        mGlutenFree = findViewById(R.id.glutenfree);
+        mVegan = findViewById(R.id.vegan);
+        mPizza = findViewById(R.id.pizza);
+        mChinese = findViewById(R.id.chinese);
+        mAmerican = findViewById(R.id.american);
+        mThai = findViewById(R.id.thai);
+        mSeafood = findViewById(R.id.seafood);
+        mMexican = findViewById(R.id.mexican);
+
+
+
+        mGlutenFree.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mGlutenFree.isChecked()){
+                    glutenfree = "true";
+                }
+                else glutenfree = "false";
+            }
+        });
+        mVegan.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mVegan.isChecked()){
+                    vegan = "true";
+                }
+                else vegan = "false";
+            }
+        });
+
+        mPizza.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mPizza.isChecked()){
+                    pizza = "true";
+                }
+                else pizza = "false";
+            }
+        });
+        mChinese.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mChinese.isChecked()){
+                    chinese = "true";
+                }
+                else chinese = "false";
+            }
+        });
+        mAmerican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mAmerican.isChecked()){
+                    american = "true";
+                }
+                else american = "false";
+            }
+        });
+        mThai.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mThai.isChecked()){
+                    thai = "true";
+                }
+                else thai = "false";
+            }
+        });
+        mSeafood.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mSeafood.isChecked()){
+                    seafood = "true";
+                }
+                else seafood = "false";
+            }
+        });
+        mMexican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (mMexican.isChecked()){
+                    mexican = "true";
+                }
+                else mexican = "false";
+            }
+        });
+
 
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
@@ -104,9 +210,11 @@ public class UploadActivity extends AppCompatActivity {
         mFoodPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_PICK);
-                intent.setType("image/*");
-                startActivityForResult(intent, 2);
+//                Intent intent = new Intent(Intent.ACTION_PICK);
+//                intent.setType("image/*");
+//                startActivityForResult(intent, 2);
+                Intent photo= new Intent("android.media.action.IMAGE_CAPTURE");
+                startActivityForResult(photo, CAMERA_PIC_REQUEST);
             }
         });
         mConfirm.setOnClickListener(new View.OnClickListener() {
@@ -131,6 +239,7 @@ public class UploadActivity extends AppCompatActivity {
     private void saveFoodInformation() {
         name = mNameField.getText().toString();
 
+        //glutenfree = mGlutenFree.
         String foodSaveUTC = String.valueOf(System.currentTimeMillis());
         final DatabaseReference newUploadRef = mUploadsDatabase.push();
         String newID = newUploadRef.getKey();
@@ -156,20 +265,25 @@ public class UploadActivity extends AppCompatActivity {
         location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
             Log.d("gettingImage", "starting upload");
-            if (resultUri != null){
-
+            //if (resultUri != null){
+            if (image != null){
+                Log.d("getting image ", image.toString());
                 final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("foodImageUrl").child(foodSaveUTC);
                 Bitmap bitmap = null;
 
-                try {
-                    bitmap= MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    bitmap= MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                //bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                //image.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                image.compress(Bitmap.CompressFormat.PNG, 100, baos);
                 byte[] data = baos.toByteArray();
+                //prevent memory leak
+                image.recycle();
                 UploadTask uploadTask = filepath.putBytes(data);
                 uploadTask.addOnFailureListener(new OnFailureListener() {
                     @Override
@@ -187,7 +301,7 @@ public class UploadActivity extends AppCompatActivity {
 //                            Map newImage = new HashMap();
 //                            newImage.put("foodImageUrl", uri.toString());
 //                            mUserDatabase.child("uploads").updateChildren(newImage);
-                                newUploadRef.setValue(new Upload(name, userId, uri.toString() ));
+                                newUploadRef.setValue(new Upload(name, userId, uri.toString(), glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican ));
                                 Log.d("where am i ", location.toString());
                                 geoFire.setLocation(newUploadRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
                                     @Override
@@ -221,11 +335,14 @@ public class UploadActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("onactivityresult", resultCode + " " + data.toString());
         if(requestCode == 2 && resultCode == Activity.RESULT_OK){
-            final Uri imageUri = data.getData();
-            Log.d("imageURI", imageUri.toString());
-            resultUri = imageUri;
-            mFoodPhoto.setImageURI(resultUri);
+            image = (Bitmap) data.getExtras().get("data");
+            ImageView imageView = (ImageView) findViewById(R.id.foodPhoto);
+            imageView.setImageBitmap(image);
+//            final Uri imageUri = data.getData();
+//            resultUri = imageUri;
+//            mFoodPhoto.setImageURI(resultUri);
         }
     }
 

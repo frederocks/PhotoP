@@ -12,7 +12,7 @@
         android:layout_width="200sp"
         android:layout_height="200sp"
         android:id="@+id/foodPhoto"
-        android:src="@mipmap/ic_launcher"
+        android:src="@mipmap/ic_launcher_foreground"
         android:layout_gravity="center"
         android:layout_marginBottom="20sp">
     </ImageView>

@@ -94,7 +94,7 @@
 
     </LinearLayout>
 <SeekBar
-    android:id="@+id/seekBar1"
+    android:id="@+id/seekbar"
     android:layout_width="300dp"
     android:layout_height="wrap_content"
     android:layout_alignParentLeft="true"
@@ -102,7 +102,9 @@
     android:layout_marginTop="26dp"
     android:layout_gravity="center"
     android:layout_marginBottom="30dp"
-    android:max="10"
+    android:max="100"
+    android:progress="1"
+    android:progressDrawable="@drawable/custom_progess"
     >
 
 </SeekBar>

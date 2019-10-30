@@ -61,6 +61,7 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
 
     public static final GeoLocation NEW_YORK = new GeoLocation(40.730292, -73.990401);
+    public static final GeoLocation Sioux_Falls = new GeoLocation(43.5555306, -96.7228278 );
 
     private cards cards_data[];
     private com.example.photop.Cards.arrayAdapter arrayAdapter;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtLocation;
     private LocationRequest locationRequest;
     private GeoFire geoFire ;
-
+    private int distance;
 
     private DatabaseReference usersDb, uploadDb, geoFireDb;
     List<String> nearbyItems;
@@ -107,10 +108,45 @@ public class MainActivity extends AppCompatActivity {
         currentUId = mAuth.getCurrentUser().getUid();
         rowItems = new ArrayList<cards>();
         arrayAdapter = new arrayAdapter(this, R.layout.item, rowItems );
+        try {
+            //  Block of code to try
+            distance = Integer.parseInt(usersDb.child("distance").toString())  ;
+        }
+        catch(Exception e) {
+            //  Block of code to handle errors
+            distance = 5;
+        }
 
 
 
-        GeoLocation currentLocationGeoHash = new GeoLocation(43.536388, -96.731667);
+        distance *= 1.6;
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        final GeoLocation geoLocation;
+        final Location location;
+
+        //if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    Activity#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for Activity#requestPermissions for more details.
+            Log.d("location", "location not set");
+
+            checkLocationPermission();
+            //return;
+        }
+        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        GeoLocation currentLocationGeoHash;
+//        try {
+//             currentLocationGeoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
+//        } finally {
+//             currentLocationGeoHash = Sioux_Falls;
+//        }
+
+        currentLocationGeoHash = Sioux_Falls;
 
         geoFire.setLocation(currentUId, currentLocationGeoHash, new GeoFire.CompletionListener() {
             @Override
@@ -120,8 +156,12 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     Log.d("MainActivity", "Location saved on server successfully!");
                     Log.d("MainActivity", "getNearbyUsers() triggered!");
-
-                    GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(43.536388, -96.731667), 8.0);
+                    GeoQuery geoQuery;
+//                    try{geoQuery = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), distance);}
+//                    finally {
+//                        geoQuery = geoFire.queryAtLocation(Sioux_Falls, distance);
+//                    }
+                    geoQuery = geoFire.queryAtLocation(Sioux_Falls, distance);
                     //geoQuery.removeAllListeners();
                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                         // user has been found within the radius:
@@ -154,21 +194,6 @@ public class MainActivity extends AppCompatActivity {
 
                 }}
         });
-
-
-
-
-
-
-
-        //getLocation();
-
-
-
-        //checkUserSex();
-
-        //getUserLocation();
-        //checkUserPreferences();
 
 
         SwipeFlingAdapterView flingContainer = (SwipeFlingAdapterView) findViewById(R.id.frame);

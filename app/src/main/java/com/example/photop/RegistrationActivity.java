@@ -89,6 +89,7 @@ public class RegistrationActivity extends AppCompatActivity {
                             userInfo.put("name", name);
                             userInfo.put("preferences", radioButton.getText().toString());
                             userInfo.put("profileImageUrl", "default");
+                            userInfo.put("distance", "5");
                             currentUserDb.updateChildren(userInfo);
                         }
                     }

@@ -16,6 +16,8 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -44,11 +46,12 @@ public class SettingsActivity extends AppCompatActivity {
     private Button mBack, mConfirm;
     private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mAmerican, mThai, mSeafood, mMexican;
     private ImageView mProfileImage;
-
+    private SeekBar mSeekBar;
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
-
-    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican;
+    int progressChangedValue = 3;
+    int savedProgress = 3;
+    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican, distance;
 
     private Uri resultUri;
 
@@ -58,9 +61,15 @@ public class SettingsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        mAuth = FirebaseAuth.getInstance();
+        userId = mAuth.getCurrentUser().getUid();
+        mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
+
+
+
         mNameField = (EditText) findViewById(R.id.name);
         mPhoneField = (EditText) findViewById(R.id.phone);
-
+        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
         mProfileImage = (ImageView) findViewById(R.id.profileImage);
 
         mBack = (Button) findViewById(R.id.back);
@@ -75,12 +84,30 @@ public class SettingsActivity extends AppCompatActivity {
         mSeafood = (CheckBox) findViewById(R.id.seafood);
         mMexican = (CheckBox) findViewById(R.id.mexican);
 
+        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
+        //mSeekBar.setProgress(savedProgress);
+        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                progressChangedValue = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Toast.makeText(SettingsActivity.this, progressChangedValue + " Miles" ,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
 
 
-        Log.d("vegan", mVegan.toString());
-        mAuth = FirebaseAuth.getInstance();
-        userId = mAuth.getCurrentUser().getUid();
-        mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
+
+
 
         getUserInfo();
         mProfileImage.setOnClickListener(new View.OnClickListener() {
@@ -113,6 +140,11 @@ public class SettingsActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
                     Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    if (map.get("distance")!= null){
+                        distance = map.get("distance").toString();
+                        savedProgress = Integer.parseInt(distance);
+                        mSeekBar.setProgress(savedProgress);
+                    }
                     if (map.get("name")!=null){
                         name = map.get("name").toString();
                         mNameField.setText(name);
@@ -127,7 +159,6 @@ public class SettingsActivity extends AppCompatActivity {
                             mGlutenFree.setChecked(true);
                         }
                         else mGlutenFree.setChecked(false);
-
                     }
                     if (map.get("vegan")!=null){
                         vegan = map.get("vegan").toString();
@@ -211,6 +242,7 @@ public class SettingsActivity extends AppCompatActivity {
         Map userInfo = new HashMap();
         userInfo.put("name", name);
         userInfo.put("phone", phone);
+        userInfo.put("distance", progressChangedValue);
         mUserDatabase.updateChildren(userInfo);
         if (resultUri != null){
             final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("profileImageUrl").child(userId);
