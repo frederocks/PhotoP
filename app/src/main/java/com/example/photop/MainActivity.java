@@ -117,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
             distance = 5;
         }
 
-
-
         distance *= 1.6;
         LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         final GeoLocation geoLocation;
