@@ -118,9 +118,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         distance *= 1.6;
-        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        final GeoLocation geoLocation;
-        final Location location;
+
 
         //if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
         if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -136,7 +134,12 @@ public class MainActivity extends AppCompatActivity {
             checkLocationPermission();
             //return;
         }
+        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        final GeoLocation geoLocation;
+        final Location location;
         location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude() );
+
         GeoLocation currentLocationGeoHash;
 //        try {
 //             currentLocationGeoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
@@ -146,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
         currentLocationGeoHash = Sioux_Falls;
 
-        geoFire.setLocation(currentUId, currentLocationGeoHash, new GeoFire.CompletionListener() {
+        geoFire.setLocation(currentUId, geoHash, new GeoFire.CompletionListener() {
             @Override
             public void onComplete(String key, DatabaseError error) {
                 if (error != null) {
@@ -159,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
 //                    finally {
 //                        geoQuery = geoFire.queryAtLocation(Sioux_Falls, distance);
 //                    }
-                    geoQuery = geoFire.queryAtLocation(Sioux_Falls, distance);
+                    geoQuery = geoFire.queryAtLocation(geoHash, distance);
                     //geoQuery.removeAllListeners();
                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                         // user has been found within the radius:
