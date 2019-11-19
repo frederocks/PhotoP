@@ -11,8 +11,13 @@
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="name"
+        android:hint="Business Name"
         android:id="@+id/name"/>
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Phone Number"
+        android:id="@+id/phone"/>
     <RadioGroup
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,11 +25,11 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gluten Free" />
+            android:text="Individual" />
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Vegan" />
+            android:text="Owner" />
     </RadioGroup>
 
     <EditText
@@ -36,6 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="password"
+        android:inputType="textPassword"
         android:id="@+id/password"/>
     <Button
         android:layout_width="match_parent"

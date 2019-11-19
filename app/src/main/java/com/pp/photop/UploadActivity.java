@@ -21,6 +21,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -33,9 +34,11 @@ import com.firebase.geofire.GeoLocation;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -47,21 +50,24 @@ import static com.pp.photop.MainActivity.MY_PERMISSIONS_REQUEST_LOCATION;
 
 class Upload {
     public String name;
-
+    public String uploadUserName;
+    public String phone;
     public String userId;
     public String uploadUri;
     public String glutenfree;
     public String vegan;
     public String pizza;
     public String chinese;
-    public String american;
-    public String thai;
-    public String seafood;
+    public String italian;
+    public String dessert;
+    public String brunch;
     public String mexican;
-
+    public String lat;
+    public String lng;
+    public Float rating;
     public GeoLocation geoLocation;
 
-    public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String american, String thai, String seafood, String mexican) {
+    public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String italian, String dessert, String brunch, String mexican, String lat, String lng, Float rating, String uploadUserName, String phone) {
         this.name = name;
         this.userId = userId;
         this.uploadUri = uploadUri;
@@ -69,12 +75,15 @@ class Upload {
         this.vegan = vegan;
         this.pizza = pizza;
         this.chinese = chinese;
-        this.american = american;
-        this.thai = thai;
-        this.seafood = seafood;
+        this.italian = italian;
+        this.dessert = dessert;
+        this.brunch = brunch;
         this.mexican = mexican;
-
-
+        this.lat = lat;
+        this.lng = lng;
+        this.rating = rating;
+        this.uploadUserName = uploadUserName;
+        this.phone = phone;
     }
 }
 
@@ -88,14 +97,15 @@ public class UploadActivity extends AppCompatActivity {
 
     String[] mLatLng = {Double.toString(lat), Double.toString(lng)};
     //LatLng mFoodLatLng = new Array(lat, lng);
-    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mAmerican, mThai, mSeafood, mMexican;
+    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mItalian, mDessert, mBrunch, mMexican;
     private Button mBack, mConfirm;
-
+    private RatingBar mRating;
     private FirebaseAuth mAuth;
     private DatabaseReference mUploadsDatabase, mUserDatabase, mGeoFireDatabase;
-    private String userId, name, location, foodImageUrl,glutenfree = "false", vegan= "false", pizza= "false", chinese= "false", american= "false", thai= "false", seafood= "false", mexican= "false";
+    private String userId, name, uploadUserName, phone,glutenfree = "false", vegan= "false", pizza= "false", chinese= "false", italian= "false", dessert= "false", brunch= "false", mexican= "false";
     private Uri resultUri;
     private Bitmap image;
+    private float userRating = (float) 1.0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,12 +120,18 @@ public class UploadActivity extends AppCompatActivity {
         mVegan = findViewById(R.id.vegan);
         mPizza = findViewById(R.id.pizza);
         mChinese = findViewById(R.id.chinese);
-        mAmerican = findViewById(R.id.american);
-        mThai = findViewById(R.id.thai);
-        mSeafood = findViewById(R.id.seafood);
+        mItalian = findViewById(R.id.italian);
+        mDessert = findViewById(R.id.dessert);
+        mBrunch = findViewById(R.id.brunch);
         mMexican = findViewById(R.id.mexican);
+        mRating = findViewById(R.id.rating);
 
-
+        mRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
+                userRating = rating;
+            }
+        });
 
         mGlutenFree.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -154,31 +170,31 @@ public class UploadActivity extends AppCompatActivity {
                 else chinese = "false";
             }
         });
-        mAmerican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mItalian.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mAmerican.isChecked()){
-                    american = "true";
+                if (mItalian.isChecked()){
+                    italian = "true";
                 }
-                else american = "false";
+                else italian = "false";
             }
         });
-        mThai.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mDessert.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mThai.isChecked()){
-                    thai = "true";
+                if (mDessert.isChecked()){
+                    dessert = "true";
                 }
-                else thai = "false";
+                else dessert = "false";
             }
         });
-        mSeafood.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        mBrunch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mSeafood.isChecked()){
-                    seafood = "true";
+                if (mBrunch.isChecked()){
+                    brunch = "true";
                 }
-                else seafood = "false";
+                else brunch = "false";
             }
         });
         mMexican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -235,7 +251,24 @@ public class UploadActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void saveFoodInformation() {
         name = mNameField.getText().toString();
+        mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    if (dataSnapshot.child("name").getValue() != null){
+                        uploadUserName = dataSnapshot.child("name").getValue().toString();
+                    }
+                    if (dataSnapshot.child("phone").getValue() != null){
+                        phone = dataSnapshot.child("phone").getValue().toString();
+                    }
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
         //glutenfree = mGlutenFree.
         String foodSaveUTC = String.valueOf(System.currentTimeMillis());
         final DatabaseReference newUploadRef = mUploadsDatabase.push();
@@ -300,9 +333,11 @@ public class UploadActivity extends AppCompatActivity {
 //                            Map newImage = new HashMap();
 //                            newImage.put("foodImageUrl", uri.toString());
 //                            mUserDatabase.child("uploads").updateChildren(newImage);
-                                newUploadRef.setValue(new Upload(name, userId, uri.toString(), glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican ));
-                                Log.d("where am i ", location.toString());
-                                geoFire.setLocation(newUploadRef.getKey(), new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+                                Double lat = location.getLatitude();
+                                Double lng = location.getLongitude();
+                                newUploadRef.setValue(new Upload(name, userId, uri.toString(), glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, lat.toString(), lng.toString(), userRating, uploadUserName, phone ));
+
+                                geoFire.setLocation(newUploadRef.getKey(), new GeoLocation(lat, lng), new GeoFire.CompletionListener() {
                                     @Override
                                     public void onComplete(String key, DatabaseError error) {
                                     }
@@ -334,7 +369,6 @@ public class UploadActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("onactivityresult", resultCode + " " + data.toString());
         if(requestCode == 2 && resultCode == Activity.RESULT_OK){
             //getting food from photo
 //            image = (Bitmap) data.getExtras().get("data");

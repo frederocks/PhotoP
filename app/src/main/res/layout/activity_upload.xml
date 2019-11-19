@@ -21,7 +21,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/name"
         android:background="@null"
-        android:hint="Name"
+        android:hint="Description"
         android:layout_marginBottom="20sp"/>
     <LinearLayout
         android:orientation="horizontal"
@@ -63,21 +63,21 @@
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/american"
+            android:id="@+id/italian"
 
-            android:text="American" />
+            android:text="Italian" />
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/thai"
+            android:id="@+id/dessert"
 
-            android:text="Thai" />
+            android:text="Dessert" />
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/seafood"
+            android:id="@+id/brunch"
 
-            android:text="Seafood" />
+            android:text="Brunch" />
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

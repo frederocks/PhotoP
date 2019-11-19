@@ -32,7 +32,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.pp.photop.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +42,7 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private Button mRegister;
 
-    private EditText mEmail, mPassword, mName;
+    private EditText mEmail, mPassword, mName, mPhone;
 
     private RadioGroup mRadioGroup;
 
@@ -76,7 +75,7 @@ public class RegistrationActivity extends AppCompatActivity {
         mEmail = (EditText) findViewById(R.id.email);
         mPassword = (EditText) findViewById(R.id.password);
         mName = (EditText) findViewById(R.id.name);
-
+        mPhone = findViewById(R.id.phone);
         mRadioGroup = (RadioGroup) findViewById(R.id.radioGroup);
 
         mRegister.setOnClickListener(new View.OnClickListener() {
@@ -90,9 +89,10 @@ public class RegistrationActivity extends AppCompatActivity {
                     return;
                 }
 
-                final String email = mEmail.getText().toString();
+                final String email = mEmail.getText().toString().trim();
                 final String password = mPassword.getText().toString();
                 final String name = mName.getText().toString();
+                final String phone = mPhone.getText().toString();
                 mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(RegistrationActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
@@ -122,13 +122,19 @@ public class RegistrationActivity extends AppCompatActivity {
                             String userId = mAuth.getCurrentUser().getUid();
                             DatabaseReference currentUserDb = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
                             //DatabaseReference currentUserDb = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
+                            Double lat = location.getLatitude();
+                            Double lng = location.getLongitude();
+
                             Map userInfo = new HashMap<>();
                             userInfo.put("name", name);
-                            userInfo.put("preferences", radioButton.getText().toString());
+                            userInfo.put("userStatus", radioButton.getText().toString());
                             userInfo.put("profileImageUrl", "default");
                             userInfo.put("distance", "5");
+                            userInfo.put("lat", lat);
+                            userInfo.put("lng", lng);
+                            userInfo.put("phone", phone);
                             currentUserDb.updateChildren(userInfo);
-                            geoFire.setLocation(userId, new GeoLocation(location.getLatitude(), location.getLongitude()), new GeoFire.CompletionListener() {
+                            geoFire.setLocation(userId, new GeoLocation(lat, lng), new GeoFire.CompletionListener() {
                                 @Override
                                 public void onComplete(String key, DatabaseError error) {
                                 }

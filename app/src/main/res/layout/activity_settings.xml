@@ -29,7 +29,7 @@
         android:background="@null"
         android:hint="Phone"
         android:layout_marginBottom="20sp"
-        android:inputType="number"/>
+        android:inputType="phone"/>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -56,41 +56,47 @@
 
         <CheckBox
             android:id="@+id/vegan"
-            android:layout_width="107dp"
+            android:layout_width="108dp"
             android:layout_height="wrap_content"
             android:onClick="onCheckboxClicked"
             android:text="Vegan" />
 
     </LinearLayout>
+
     <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
+        android:layout_width="380dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20sp">
+        android:layout_marginBottom="20sp"
+        android:orientation="horizontal">
+
         <CheckBox
+            android:id="@+id/italian"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/american"
             android:onClick="onCheckboxClicked"
-            android:text="American" />
+            android:text="Italian" />
+
         <CheckBox
+            android:id="@+id/dessert"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/thai"
             android:onClick="onCheckboxClicked"
-            android:text="Thai" />
+            android:text="Dessert" />
         <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/seafood"
-            android:onClick="onCheckboxClicked"
-            android:text="Seafood" />
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/mexican"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:onClick="onCheckboxClicked"
             android:text="Mexican" />
+
+        <CheckBox
+            android:id="@+id/brunch"
+            android:layout_width="127dp"
+            android:layout_height="wrap_content"
+            android:onClick="onCheckboxClicked"
+            android:text="Brunch" />
+
+
 
     </LinearLayout>
 <SeekBar

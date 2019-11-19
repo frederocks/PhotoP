@@ -41,14 +41,14 @@ public class SettingsActivity extends AppCompatActivity {
     private EditText mNameField, mPhoneField;
 
     private Button mBack, mConfirm;
-    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mAmerican, mThai, mSeafood, mMexican;
+    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mItalian, mDessert, mBrunch, mMexican;
     private ImageView mProfileImage;
     private SeekBar mSeekBar;
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
     int progressChangedValue = 3;
     int savedProgress = 3;
-    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, american, thai, seafood, mexican, distance;
+    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, distance;
 
     private Uri resultUri;
 
@@ -76,9 +76,9 @@ public class SettingsActivity extends AppCompatActivity {
         mVegan = (CheckBox) findViewById(R.id.vegan);
         mPizza = (CheckBox) findViewById(R.id.pizza);
         mChinese = (CheckBox) findViewById(R.id.chinese);
-        mAmerican = (CheckBox) findViewById(R.id.american);
-        mThai = (CheckBox) findViewById(R.id.thai);
-        mSeafood = (CheckBox) findViewById(R.id.seafood);
+        mItalian = (CheckBox) findViewById(R.id.italian);
+        mDessert = (CheckBox) findViewById(R.id.dessert);
+        mBrunch = (CheckBox) findViewById(R.id.brunch);
         mMexican = (CheckBox) findViewById(R.id.mexican);
 
         mSeekBar = (SeekBar) findViewById(R.id.seekbar);
@@ -178,26 +178,26 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                         else mChinese.setChecked(false);
                     }
-                    if (map.get("american")!=null){
-                        american = map.get("american").toString();
-                        if (american == "true"){
-                            mAmerican.setChecked(true);
+                    if (map.get("italian")!=null){
+                        italian = map.get("italian").toString();
+                        if (italian == "true"){
+                            mItalian.setChecked(true);
                         }
-                        else mAmerican.setChecked(false);
+                        else mItalian.setChecked(false);
                     }
-                    if (map.get("thai")!=null){
-                        thai = map.get("thai").toString();
-                        if (thai == "true"){
-                            mThai.setChecked(true);
+                    if (map.get("dessert")!=null){
+                        dessert = map.get("dessert").toString();
+                        if (dessert == "true"){
+                            mDessert.setChecked(true);
                         }
-                        else mThai.setChecked(false);
+                        else mDessert.setChecked(false);
                     }
-                    if (map.get("seafood")!=null){
-                        seafood = map.get("seafood").toString();
-                        if (seafood == "true"){
-                            mSeafood.setChecked(true);
+                    if (map.get("brunch")!=null){
+                        brunch = map.get("brunch").toString();
+                        if (brunch == "true"){
+                            mBrunch.setChecked(true);
                         }
-                        else mSeafood.setChecked(false);
+                        else mBrunch.setChecked(false);
                     }
                     if (map.get("mexican")!=null){
                         mexican = map.get("mexican").toString();
@@ -329,23 +329,23 @@ public class SettingsActivity extends AppCompatActivity {
                 }
                 else mUserDatabase.child("chinese").setValue(false);
                 break;
-            case R.id.american:
+            case R.id.italian:
                 if (checked){
-                    mUserDatabase.child("american").setValue(true);
+                    mUserDatabase.child("italian").setValue(true);
                 }
-                else mUserDatabase.child("american").setValue(false);
+                else mUserDatabase.child("italian").setValue(false);
                 break;
-            case R.id.thai:
+            case R.id.dessert:
                 if (checked){
-                    mUserDatabase.child("thai").setValue(true);
+                    mUserDatabase.child("dessert").setValue(true);
                 }
-                else mUserDatabase.child("thai").setValue(false);
+                else mUserDatabase.child("dessert").setValue(false);
                 break;
-            case R.id.seafood:
+            case R.id.brunch:
                 if (checked){
-                    mUserDatabase.child("seafood").setValue(true);
+                    mUserDatabase.child("brunch").setValue(true);
                 }
-                else mUserDatabase.child("seafood").setValue(false);
+                else mUserDatabase.child("brunch").setValue(false);
                 break;
             case R.id.mexican:
                 if (checked){

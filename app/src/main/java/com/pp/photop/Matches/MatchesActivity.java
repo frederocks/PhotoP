@@ -94,10 +94,16 @@ public class MatchesActivity extends AppCompatActivity {
                     if (dataSnapshot.child("uploadUri").getValue() != null){
                         foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
                     }
-                    if (dataSnapshot.child("lat").getValue() != null){
+                    if (dataSnapshot.child("uploadUserName").getValue() != null){
+                        lat = dataSnapshot.child("uploadUserName").getValue().toString();
+                    }
+                    else if (dataSnapshot.child("lat").getValue() != null){
                         lat = dataSnapshot.child("lat").getValue().toString();
                     }
-                    if (dataSnapshot.child("lng").getValue() != null){
+                    if (dataSnapshot.child("phone").getValue() != null){
+                        lng = dataSnapshot.child("phone").getValue().toString();
+                    }
+                    else if (dataSnapshot.child("lng").getValue() != null){
                         lng = dataSnapshot.child("lng").getValue().toString();
                     }
                     MatchesObject obj = new MatchesObject(userId, name, foodImageUrl, lat, lng);

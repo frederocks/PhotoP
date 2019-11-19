@@ -181,6 +181,12 @@ public class MainActivity extends AppCompatActivity {
                 location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                 //  Block of code to try
                 final String[] d = new String[1];
+//                String lat = Double.toString(location.getLatitude());
+//                String lng = Double.toString(location.getLongitude());
+//                String latlng = lat + ", " + lng;
+//                Date date = new Date(System.currentTimeMillis());
+//                usersDb.child(currentUId).child("locationHistory").child(String.valueOf(date)).setValue(latlng);
+
                 usersDb.child(currentUId).child("distance").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -314,10 +320,15 @@ public class MainActivity extends AppCompatActivity {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 Log.d("MainActivity", "displayPotentialMatches ON CHILD ADDED triggered!");
                 // check if there is any new potential match and if the current user hasn't swiped with them yet:
+//                if (dataSnapshot.exists() && !dataSnapshot.child("connections").child("nope").hasChild(currentUId) && !dataSnapshot.child("connections").child("yeps").hasChild(currentUId) && dataSnapshot.child("sex").getValue().toString().equals(oppositeUserSex)) {
+//                    String profileImageUrl = "default";
+//                    if (!dataSnapshot.child("profileImageUrl").getValue().equals("default")) {
+//                        profileImageUrl = dataSnapshot.child("profileImageUrl").getValue().toString();
+//                    }
                 for (String i : nearbyUsersList){
                     if (dataSnapshot.exists()
                             && !dataSnapshot.getKey().equals(currentUId)
-
+                            && !dataSnapshot.child("history").child("nope").hasChild(currentUId) && !dataSnapshot.child("history").child("yeps").hasChild(currentUId)
                             // location check:
                             //&& nearbyUsersList.contains(dataSnapshot.getKey())
                             && i.equals(dataSnapshot.getKey())
