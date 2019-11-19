@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:290458716581:android:96bffb1798b743d811c04c",
         "android_client_info": {
-          "package_name": "com.example.photop"
+          "package_name": "com.pp.photop"
         }
       },
       "oauth_client": [
@@ -18,7 +18,7 @@
           "client_id": "290458716581-d6d7oinljbhjp1v05ao60fq6reknpbne.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.example.photop",
+            "package_name": "com.pp.photop",
             "certificate_hash": "ce58afb6fcd5301b552420ef0d2275a295ee13fa"
           }
         },

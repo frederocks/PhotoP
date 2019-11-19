@@ -38,6 +38,7 @@
             android:text="Upload"
             android:onClick="goToUpload"
             tools:ignore="MissingConstraints" />
+
     </LinearLayout>
 
     <com.lorentzos.flingswipe.SwipeFlingAdapterView
