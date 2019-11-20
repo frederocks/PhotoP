@@ -65,6 +65,7 @@ class Upload {
     public String lat;
     public String lng;
     public Float rating;
+
     public GeoLocation geoLocation;
 
     public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String italian, String dessert, String brunch, String mexican, String lat, String lng, Float rating, String uploadUserName, String phone) {

@@ -1,7 +1,6 @@
 package com.pp.photop;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -19,11 +18,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -39,6 +38,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import com.pp.photop.Cards.arrayAdapter;
@@ -251,6 +252,27 @@ public class MainActivity extends AppCompatActivity {
                                 cards obj = (cards) dataObject;
                                 String foodId = obj.getUserId();
                                 usersDb.child(currentUId).child("history").child("nope").child(foodId).setValue(true);
+                                uploadDb.child(foodId).child("swipeCounter").child("no").runTransaction(new Transaction.Handler() {
+
+                                    @Override
+                                    public Transaction.Result doTransaction( MutableData mutableData) {
+                                        Long l = mutableData.getValue(Long.class);
+                                        if (l == null) {
+                                            return Transaction.success(mutableData);
+                                        }
+                                        else {
+                                            l++;
+                                        }
+                                        mutableData.setValue(l);
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+                                        Log.d("Posttrans", "posttransaction on complete " + databaseError);
+
+                                    }
+                                });
                                 Toast.makeText(MainActivity.this, "left", Toast.LENGTH_SHORT).show();
                             }
 
@@ -259,6 +281,29 @@ public class MainActivity extends AppCompatActivity {
                                 cards obj = (cards) dataObject;
                                 String foodId = obj.getUserId();
                                 usersDb.child(currentUId).child("history").child("yep").child(foodId).setValue(true);
+                                //update no counter
+
+                                uploadDb.child(foodId).child("swipeCounter").child("yep").runTransaction(new Transaction.Handler() {
+
+                                    @Override
+                                    public Transaction.Result doTransaction( MutableData mutableData) {
+                                        Long l = mutableData.getValue(Long.class);
+                                        if (l == null) {
+                                            return Transaction.success(mutableData);
+                                        }
+                                        else {
+                                            l++;
+                                        }
+                                        mutableData.setValue(l);
+                                        return Transaction.success(mutableData);
+                                    }
+
+                                    @Override
+                                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+                                        Log.d("Posttrans", "posttransaction on complete " + databaseError);
+
+                                    }
+                                });
                                 Toast.makeText(MainActivity.this, "right", Toast.LENGTH_SHORT).show();
                             }
 
@@ -275,13 +320,13 @@ public class MainActivity extends AppCompatActivity {
                             @Override
                             public void onItemClicked(int itemPosition, Object dataObject) {
 //                                Fra layoutToAdd;
-//                                layoutToAdd = findViewById(R.id.map);
-                                @SuppressLint("ResourceType") View fragment =  findViewById(R.layout.activity_maps2);
-                                //LayoutInflater inflater = LayoutInflater.from(getBaseContext());
+//                                FragmentManager fragmentManager = getSupportFragmentManager();
+////                                layoutToAdd = findViewById(R.id.map);
+//                                @SuppressLint("ResourceType") View fragment =  findViewById(R.layout.activity_maps2);
+//                                //LayoutInflater inflater = LayoutInflater.from(getBaseContext());
 
                                 Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
                                 Log.d("dataObject", dataObject.toString());
-                                FragmentManager fragmentManager = getSupportFragmentManager();
                             }
                         });
                     }
@@ -316,10 +361,11 @@ public class MainActivity extends AppCompatActivity {
 
                 //for (String i : nearbyUsersList){
                 for (FoodProperties i : foodObjects){
-                    //update uploads db if missing key
-//                    if(dataSnapshot.child("brunch").exists()){
+                    //update uploads db if missing key uncomment logic operator if it exists or not
+//                    if(!dataSnapshot.child("swipeCounter").exists()){
+//                        Log.d("found itali", "doesn't exist");
 //                        String key = dataSnapshot.getKey();
-//                        uploadDb.child(key).child("brunch").setValue("false");
+//                        uploadDb.child(key).child("swipeCounter").child("yep").setValue(0);
 //                    }
 
                     if (dataSnapshot.exists()
