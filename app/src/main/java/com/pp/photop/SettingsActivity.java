@@ -62,8 +62,6 @@ public class SettingsActivity extends AppCompatActivity {
         userId = mAuth.getCurrentUser().getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
 
-
-
         mNameField = (EditText) findViewById(R.id.name);
         mPhoneField = (EditText) findViewById(R.id.phone);
         mSeekBar = (SeekBar) findViewById(R.id.seekbar);
@@ -101,9 +99,6 @@ public class SettingsActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
-
-
-
 
 
         getUserInfo();

@@ -19,7 +19,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -30,22 +29,11 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.libraries.places.api.Places;
-import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.PlaceLikelihood;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceRequest;
-import com.google.android.libraries.places.api.net.FindCurrentPlaceResponse;
-import com.google.android.libraries.places.api.net.PlacesClient;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -58,7 +46,6 @@ import com.pp.photop.Cards.cards;
 import com.pp.photop.Matches.MatchesActivity;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -112,45 +99,43 @@ public class MainActivity extends AppCompatActivity {
         locationRequest = LocationRequest.create();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(20 * 1000);
-
-        Places.initialize(getApplicationContext(), "AIzaSyAPp_5yCUKDL318bpIccPxvwgaXl0MMrjA");
-        PlacesClient placesClient = Places.createClient(this);
-
-        // Use fields to define the data types to return.
-        List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
-
-        // Use the builder to create a FindCurrentPlaceRequest.
-        FindCurrentPlaceRequest request =
-                FindCurrentPlaceRequest.newInstance(placeFields);
+//        Places.initialize(getApplicationContext(), "AIzaSyAPp_5yCUKDL318bpIccPxvwgaXl0MMrjA");
+//        PlacesClient placesClient = Places.createClient(this);
+//
+//        // Use fields to define the data types to return.
+//        List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
+//
+//        // Use the builder to create a FindCurrentPlaceRequest.
+//        FindCurrentPlaceRequest request =
+//                FindCurrentPlaceRequest.newInstance(placeFields);
         // Call findCurrentPlace and handle the response (first check that the user has granted permission).
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
-            placeResponse.addOnCompleteListener(new OnCompleteListener<FindCurrentPlaceResponse>() {
-                @Override
-                public void onComplete(@NonNull Task<FindCurrentPlaceResponse> task) {
-                    if (task.isSuccessful()) {
-                        FindCurrentPlaceResponse response = task.getResult();
-                        for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
-                            Log.i(TAG, String.format("Place '%s' has likelihood: %f",
-                                    placeLikelihood.getPlace().getName(),
-                                    placeLikelihood.getLikelihood()));
-                        }
-                    } else {
-                        Exception exception = task.getException();
-                        if (exception instanceof ApiException) {
-                            ApiException apiException = (ApiException) exception;
-                            Log.e("tag", "Place not found: " + apiException.getStatusCode());
-                        }
-                    }
-                }
-            });
+//            Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
+//            placeResponse.addOnCompleteListener(new OnCompleteListener<FindCurrentPlaceResponse>() {
+//                @Override
+//                public void onComplete(@NonNull Task<FindCurrentPlaceResponse> task) {
+//                    if (task.isSuccessful()) {
+//                        FindCurrentPlaceResponse response = task.getResult();
+//                        for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
+//                            Log.i(TAG, String.format("Place '%s' has likelihood: %f",
+//                                    placeLikelihood.getPlace().getName(),
+//                                    placeLikelihood.getLikelihood()));
+//                        }
+//                    } else {
+//                        Exception exception = task.getException();
+//                        if (exception instanceof ApiException) {
+//                            ApiException apiException = (ApiException) exception;
+//                            Log.e("tag", "Place not found: " + apiException.getStatusCode());
+//                        }
+//                    }
+//                }
+//            });
         } else {
             // A local method to request required permissions;
             // See https://developer.android.com/training/permissions/requesting
             checkLocationPermission();
         }
         // Initialize Places.
-
 
         usersDb = FirebaseDatabase.getInstance().getReference().child("Users");
         uploadDb = FirebaseDatabase.getInstance().getReference().child("Uploads");
@@ -161,6 +146,8 @@ public class MainActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         currentUId = mAuth.getCurrentUser().getUid();
         rowItems = new ArrayList<cards>();
+        rowItems.clear();
+        foodObjects.clear();
         arrayAdapter = new arrayAdapter(this, R.layout.item, rowItems);
         if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -311,10 +298,11 @@ public class MainActivity extends AppCompatActivity {
     }
     // retrieve users from database and display them on cards, based on the location and various filters:
     private void displayPotentialMatches() {
-        Log.d("MainActivity", "displayPotentialMatches() triggered!");
+        Log.d("MainActivity", "displayPotentialMatches() triggered! rowsize " + rowItems.size());
 //        for (String f : nearbyUsersList) {
 //            Log.d("brunch", f);
 //        }
+        rowItems.clear();
         uploadDb.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -374,239 +362,8 @@ public class MainActivity extends AppCompatActivity {
     } // end of displayPotentialMatches()
 
 
-    com.google.android.gms.location.LocationCallback locationCallback = new com.google.android.gms.location.LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            Log.d("MainActivity", "onLocationResult triggered!");
-            if (locationResult == null) {
-                return;
-            }
-            mCurrentLocation = locationResult.getLastLocation();
-            geoFire.setLocation(currentUId, new GeoLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), new GeoFire.CompletionListener() {
-                @Override
-                public void onComplete(String key, DatabaseError error) {
-                    if (error != null) {
-                        Log.d("MainActivity", "There was an error saving the location to GeoFire: " + error);
-                    } else {
-                        Log.d("MainActivity", "Location saved on server successfully!");
-                        // find nearby obj  of the current user's location:
-                        getNearbyUsers();
-                    }
-                }
-            });
-            if (!isContinue && mFusedLocationClient != null) {
-                mFusedLocationClient.removeLocationUpdates(locationCallback);
-            }
-
-        }
-    };
-    GeoQueryEventListener geoQueryEventListener = new GeoQueryEventListener() {
-        @Override
-        public void onKeyEntered(String key, GeoLocation location) {
-            Log.d("geofire key has entered", key);
-//            nearbyItems.add(key);
-            uploadDb.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    //if (dataSnapshot.exists() && nearbyItems.contains(dataSnapshot.getKey())
-                    if (dataSnapshot.exists() && !dataSnapshot.getKey().equals(currentUId)) {
-                        Log.d("OndataChangeName", dataSnapshot.child("name").getValue().toString());
-                        String foodImageUrl = "default";
-                        if (!dataSnapshot.child("uploadUri").getValue().equals("default")) {
-                            foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
-                        }
-                        cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), foodImageUrl);
-                        rowItems.add(item);
-                        arrayAdapter.notifyDataSetChanged();
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                }
-            });
-        }
-
-        @Override
-        public void onKeyExited(String key) {
-
-        }
-
-        @Override
-        public void onKeyMoved(String key, GeoLocation location) {
-        }
-
-        @Override
-        public void onGeoQueryReady() {
-        }
-
-        @Override
-        public void onGeoQueryError(DatabaseError error) {
-        }
-    };
-
-    private void getNearbyUsers() {
-        Log.d("MainActivity", "getNearbyUsers() triggered!");
-
-        //GeoLocation currentLocationGeoHash = new GeoLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        GeoLocation currentLocationGeoHash = new GeoLocation(43.536388, -96.731667);
-        if (geoQueryNearByUser == null) {
-            geoQueryNearByUser = geoFire.queryAtLocation(currentLocationGeoHash, 8.0);
-
-            geoQueryNearByUser.addGeoQueryEventListener(geoQueryEventListener);
-        } else {
-            geoQueryNearByUser.setCenter(currentLocationGeoHash);
-        }
-
-    }
-
-    // end of getNearbyUsers()
-    private void isConnectionMatch(String userId) {
-        DatabaseReference currentUserConnectionsDb = usersDb.child(currentUId).child("connections").child("yeps").child(userId);
-        currentUserConnectionsDb.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                Toast.makeText(MainActivity.this, "new Connection", Toast.LENGTH_LONG).show();
-                usersDb.child(dataSnapshot.getKey()).child("connections").child("matches").child(currentUId).setValue(true);
-                usersDb.child(currentUId).child("connections").child("matches").child(dataSnapshot.getKey()).setValue(true);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-    private String userSex;
-    private String oppositeUserSex;
-    private String userPreferences;
-
-    public void checkUserPreferences() {
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference userDb = usersDb.child(user.getUid());
-        userDb.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    getFoodObject();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-
-    }
 
 
-    public void getFoodObject() {
-        //GeoFire geoFire = new GeoFire(uploadDb.child("geoFire"));
-        GeoFire geoFire = new GeoFire(geoFireDb);
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(43.544857412461134, -96.72661488688865), 8);
-        uploadDb.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                if (dataSnapshot.exists()) {
-                    String foodImageUrl = "default";
-
-                    //StorageReference filepath = FirebaseStorage.getInstance().getReference().child("foodImageUrl");
-                    if (!dataSnapshot.child("uploadUri").getValue().equals("default")) {
-                        foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
-                    }
-                    cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), foodImageUrl);
-                    rowItems.add(item);
-                    arrayAdapter.notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
-
-
-    public void checkUserSex() {
-        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference userDb = usersDb.child(user.getUid());
-        userDb.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists()) {
-                    if (dataSnapshot.child("sex").getValue() != null) {
-                        userSex = dataSnapshot.child("sex").getValue().toString();
-                        switch (userSex) {
-                            case "Male":
-                                oppositeUserSex = "Female";
-                                break;
-                            case "Female":
-                                oppositeUserSex = "Male";
-                                break;
-                        }
-                        getOppositeSexUsers();
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-            }
-        });
-
-    }
-
-    public void getOppositeSexUsers() {
-        usersDb.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-                if (dataSnapshot.exists() && !dataSnapshot.child("connections").child("nope").hasChild(currentUId) && !dataSnapshot.child("connections").child("yeps").hasChild(currentUId) && dataSnapshot.child("sex").getValue().toString().equals(oppositeUserSex)) {
-                    String profileImageUrl = "default";
-                    if (!dataSnapshot.child("profileImageUrl").getValue().equals("default")) {
-                        profileImageUrl = dataSnapshot.child("profileImageUrl").getValue().toString();
-                    }
-                    cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), profileImageUrl);
-                    rowItems.add(item);
-                    arrayAdapter.notifyDataSetChanged();
-                }
-            }
-
-            @Override
-            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-            }
-
-            @Override
-            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-            }
-
-            @Override
-            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     private int locationRequestCode = 1000;
     private double wayLatitude = 0.0, wayLongitude = 0.0;
@@ -668,36 +425,23 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
         return;
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == Activity.RESULT_OK) {
 
-
-
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    AppConstants.LOCATION_REQUEST);
-        } else {
-            if (isContinue) {
-                mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-            } else {
-                mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        Log.d("GetLastLocation", location.toString());
-                        if (location != null) {
-                            mCurrentLocation = location;
-
-                            wayLatitude = location.getLatitude();
-                            wayLongitude = location.getLongitude();
-
-                        } else {
-                            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-                        }
-                    }
-                });
+            if (requestCode == AppConstants.GPS_REQUEST) {
+                isGPS = true; // flag maintain before get location
             }
         }
+        if (requestCode == 11){
+            Log.d("Main Reload", "requestCode triggered");
+            rowItems.clear();
+            loadActivity();
+        }
     }
+
+
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -745,52 +489,300 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("MissingPermission")
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case 1000: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//    @SuppressLint("MissingPermission")
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        switch (requestCode) {
+//            case 1000: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//
+//                    if (isContinue) {
+//                        mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+//                    } else {
+//                        mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+//                            @Override
+//                            public void onSuccess(Location location) {
+//                                if (location != null) {
+//                                    wayLatitude = location.getLatitude();
+//                                    wayLongitude = location.getLongitude();
+//                                } else {
+//                                    mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+//                                }
+//                            }
+//                        });
+//                    }
+//                } else {
+//                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
+//                }
+//                break;
+//            }
+//        }
+//    }
 
-                    if (isContinue) {
-                        mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-                    } else {
-                        mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                            @Override
-                            public void onSuccess(Location location) {
-                                if (location != null) {
-                                    wayLatitude = location.getLatitude();
-                                    wayLongitude = location.getLongitude();
-                                } else {
-                                    mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-                                }
-                            }
-                        });
-                    }
-                } else {
-                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
-                }
-                break;
+
+//    public void checkUserSex() {
+//        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//        DatabaseReference userDb = usersDb.child(user.getUid());
+//        userDb.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if (dataSnapshot.exists()) {
+//                    if (dataSnapshot.child("sex").getValue() != null) {
+//                        userSex = dataSnapshot.child("sex").getValue().toString();
+//                        switch (userSex) {
+//                            case "Male":
+//                                oppositeUserSex = "Female";
+//                                break;
+//                            case "Female":
+//                                oppositeUserSex = "Male";
+//                                break;
+//                        }
+//                        getOppositeSexUsers();
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//            }
+//        });
+//
+//    }
+
+//    public void getOppositeSexUsers() {
+//        usersDb.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//                if (dataSnapshot.exists() && !dataSnapshot.child("connections").child("nope").hasChild(currentUId) && !dataSnapshot.child("connections").child("yeps").hasChild(currentUId) && dataSnapshot.child("sex").getValue().toString().equals(oppositeUserSex)) {
+//                    String profileImageUrl = "default";
+//                    if (!dataSnapshot.child("profileImageUrl").getValue().equals("default")) {
+//                        profileImageUrl = dataSnapshot.child("profileImageUrl").getValue().toString();
+//                    }
+//                    cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), profileImageUrl);
+//                    rowItems.add(item);
+//                    arrayAdapter.notifyDataSetChanged();
+//                }
+//            }
+//
+//            @Override
+//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//            }
+//
+//            @Override
+//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//            }
+//
+//            @Override
+//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
+
+//    com.google.android.gms.location.LocationCallback locationCallback = new com.google.android.gms.location.LocationCallback() {
+//        @Override
+//        public void onLocationResult(LocationResult locationResult) {
+//            Log.d("MainActivity", "onLocationResult triggered!");
+//            if (locationResult == null) {
+//                return;
+//            }
+//            mCurrentLocation = locationResult.getLastLocation();
+//            geoFire.setLocation(currentUId, new GeoLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude()), new GeoFire.CompletionListener() {
+//                @Override
+//                public void onComplete(String key, DatabaseError error) {
+//                    if (error != null) {
+//                        Log.d("MainActivity", "There was an error saving the location to GeoFire: " + error);
+//                    } else {
+//                        Log.d("MainActivity", "Location saved on server successfully!");
+//                        // find nearby obj  of the current user's location:
+//                        getNearbyUsers();
+//                    }
+//                }
+//            });
+//            if (!isContinue && mFusedLocationClient != null) {
+//                mFusedLocationClient.removeLocationUpdates(locationCallback);
+//            }
+//
+//        }
+//    };
+//    GeoQueryEventListener geoQueryEventListener = new GeoQueryEventListener() {
+//        @Override
+//        public void onKeyEntered(String key, GeoLocation location) {
+//            Log.d("geofire key has entered", key);
+////            nearbyItems.add(key);
+//            uploadDb.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                    //if (dataSnapshot.exists() && nearbyItems.contains(dataSnapshot.getKey())
+//                    if (dataSnapshot.exists() && !dataSnapshot.getKey().equals(currentUId)) {
+//                        Log.d("OndataChangeName", dataSnapshot.child("name").getValue().toString());
+//                        String foodImageUrl = "default";
+//                        if (!dataSnapshot.child("uploadUri").getValue().equals("default")) {
+//                            foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
+//                        }
+//                        cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), foodImageUrl);
+//                        rowItems.add(item);
+//                        arrayAdapter.notifyDataSetChanged();
+//                    }
+//                }
+//
+//                @Override
+//                public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                }
+//            });
+//        }
+//
+//        @Override
+//        public void onKeyExited(String key) {
+//
+//        }
+//
+//        @Override
+//        public void onKeyMoved(String key, GeoLocation location) {
+//        }
+//
+//        @Override
+//        public void onGeoQueryReady() {
+//        }
+//
+//        @Override
+//        public void onGeoQueryError(DatabaseError error) {
+//        }
+//    };
+
+//    public void getFoodObject() {
+//        //GeoFire geoFire = new GeoFire(uploadDb.child("geoFire"));
+//        GeoFire geoFire = new GeoFire(geoFireDb);
+//        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(43.544857412461134, -96.72661488688865), 8);
+//        uploadDb.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//                if (dataSnapshot.exists()) {
+//                    String foodImageUrl = "default";
+//
+//                    //StorageReference filepath = FirebaseStorage.getInstance().getReference().child("foodImageUrl");
+//                    if (!dataSnapshot.child("uploadUri").getValue().equals("default")) {
+//                        foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
+//                    }
+//                    cards item = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), foodImageUrl);
+//                    rowItems.add(item);
+//                    arrayAdapter.notifyDataSetChanged();
+//                }
+//            }
+//
+//            @Override
+//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//            }
+//
+//            @Override
+//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//            }
+//
+//            @Override
+//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
+//    }
+
+//    private void getNearbyUsers() {
+//        Log.d("MainActivity", "getNearbyUsers() triggered!");
+//
+//        //GeoLocation currentLocationGeoHash = new GeoLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+//        GeoLocation currentLocationGeoHash = new GeoLocation(43.536388, -96.731667);
+//        if (geoQueryNearByUser == null) {
+//            geoQueryNearByUser = geoFire.queryAtLocation(currentLocationGeoHash, 8.0);
+//
+//            geoQueryNearByUser.addGeoQueryEventListener(geoQueryEventListener);
+//        } else {
+//            geoQueryNearByUser.setCenter(currentLocationGeoHash);
+//        }
+//
+//    }
+
+//    private void getLocation() {
+//        if (ActivityCompat.checkSelfPermission(MainActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+//                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(MainActivity.this, new String[]{ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+//                    AppConstants.LOCATION_REQUEST);
+//        } else {
+//            if (isContinue) {
+//                mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+//            } else {
+//                mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+//                    @Override
+//                    public void onSuccess(Location location) {
+//                        Log.d("GetLastLocation", location.toString());
+//                        if (location != null) {
+//                            mCurrentLocation = location;
+//
+//                            wayLatitude = location.getLatitude();
+//                            wayLongitude = location.getLongitude();
+//
+//                        } else {
+//                            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+//                        }
+//                    }
+//                });
+//            }
+//        }
+//    }
+
+    // end of getNearbyUsers()
+    private void isConnectionMatch(String userId) {
+        DatabaseReference currentUserConnectionsDb = usersDb.child(currentUId).child("connections").child("yeps").child(userId);
+        currentUserConnectionsDb.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                Toast.makeText(MainActivity.this, "new Connection", Toast.LENGTH_LONG).show();
+                usersDb.child(dataSnapshot.getKey()).child("connections").child("matches").child(currentUId).setValue(true);
+                usersDb.child(currentUId).child("connections").child("matches").child(dataSnapshot.getKey()).setValue(true);
             }
-        }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == Activity.RESULT_OK) {
+    private String userSex;
+    private String oppositeUserSex;
+    private String userPreferences;
 
-            if (requestCode == AppConstants.GPS_REQUEST) {
-                isGPS = true; // flag maintain before get location
-            }
-        }
-        if (requestCode == 11){
-            Log.d("Main Reload", "requestCode triggered");
-            loadActivity();
-        }
-    }
+//    public void checkUserPreferences() {
+//        final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+//        DatabaseReference userDb = usersDb.child(user.getUid());
+//        userDb.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if (dataSnapshot.exists()) {
+//                    getFoodObject();
+//                }
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//            }
+//        });
+//
+//    }
+
+
 
 }
