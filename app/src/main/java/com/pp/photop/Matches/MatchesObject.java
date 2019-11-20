@@ -5,15 +5,20 @@ public class MatchesObject {
     private String name;
     private String foodImageUrl;
     private String lat, lng;
+    private String uploadUserName, phone;
 
-    public MatchesObject (String userId, String name, String foodImageUrl, String lat, String lng){
+    public MatchesObject (String userId, String name, String foodImageUrl, String lat, String lng, String uploadUserName, String phone){
 
         this.userId = userId;
         this.name = name;
         this.foodImageUrl = foodImageUrl;
         this.lat = lat;
         this.lng = lng;
+        this.uploadUserName = uploadUserName;
+        this.phone = phone;
     }
+    public String getPhone(){return phone;}
+    public String getUploadUserName(){return uploadUserName;}
     public String getLat(){return lat;}
     public void setLat(String lat){
         this.lat = lat;

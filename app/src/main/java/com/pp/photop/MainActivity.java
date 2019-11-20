@@ -196,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
                             distance = Integer.parseInt(dd);
                         }
                         else distance = 3;
+                        final String brunch = dataSnapshot.child("brunch").getValue().toString();
 
                         distance *= 1.6;
                         final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
@@ -217,6 +218,8 @@ public class MainActivity extends AppCompatActivity {
                                         public void onKeyEntered(String key, GeoLocation location) {
                                             Log.d("MainActivity", key + " just entered the radius. Going to display it as a potential match!");
                                             nearbyUsersList.add(key);
+                                            FoodProperties fp = new FoodProperties(key, brunch);
+                                            foodObjects.add(fp);
                                         }
 
                                         @Override
@@ -323,7 +326,8 @@ public class MainActivity extends AppCompatActivity {
 //                        profileImageUrl = dataSnapshot.child("profileImageUrl").getValue().toString();
 //                    }
 
-                for (String i : nearbyUsersList){
+                //for (String i : nearbyUsersList){
+                for (FoodProperties i : foodObjects){
                     //update uploads db if missing key
 //                    if(dataSnapshot.child("brunch").exists()){
 //                        String key = dataSnapshot.getKey();
@@ -332,10 +336,10 @@ public class MainActivity extends AppCompatActivity {
 
                     if (dataSnapshot.exists()
                             && !dataSnapshot.getKey().equals(currentUId)
-                            && dataSnapshot.child("brunch").getValue().toString().equals("true")
+                            && dataSnapshot.child("brunch").getValue().toString().equals(i.getBrunch())
                             // location check:
                             //&& nearbyUsersList.contains(dataSnapshot.getKey())
-                            && i.equals(dataSnapshot.getKey())
+                            && i.getKey().equals(dataSnapshot.getKey())
                     ) {
                         String profilePictureURL = "default";
                         if (!dataSnapshot.child("uploadUri").getValue().equals("default")) {

@@ -13,7 +13,7 @@ import com.pp.photop.MapsActivity2;
 import com.pp.photop.R;
 
 public class MatchesViewHolders extends RecyclerView.ViewHolder implements View.OnClickListener {
-    public TextView mMatchId, mMatchName, mMatchLat, mMatchLng;
+    public TextView mMatchId, mMatchName, mMatchLat, mMatchLng, mMatchPhone, mUploadUserName;
     public ImageView mMatchImage;
 
     public MatchesViewHolders(@NonNull View itemView) {
@@ -25,6 +25,8 @@ public class MatchesViewHolders extends RecyclerView.ViewHolder implements View.
         mMatchLat = (TextView) itemView.findViewById(R.id.MatchLat);
         mMatchLng = (TextView) itemView.findViewById(R.id.MatchLng);
         mMatchImage = (ImageView) itemView.findViewById(R.id.MatchImage);
+        mMatchPhone = itemView.findViewById(R.id.MatchPhone);
+        mUploadUserName = itemView.findViewById(R.id.MatchUploadUserName);
     }
 
     @Override

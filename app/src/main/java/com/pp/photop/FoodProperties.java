@@ -6,7 +6,7 @@ public class FoodProperties {
     private String foodImageUrl;
     private String lat, lng, brunch;
 
-    public FoodProperties (String brunch, String key){
+    public FoodProperties (String key, String brunch){
         this.key = key;
         this.brunch = brunch;
     }

@@ -87,6 +87,8 @@ public class MatchesActivity extends AppCompatActivity {
                     String foodImageUrl = "";
                     String lat = "";
                     String lng = "";
+                    String uploadUserName = "Default";
+                    String phone = "605-555-5555";
 
                     if (dataSnapshot.child("name").getValue() != null){
                         name = dataSnapshot.child("name").getValue().toString();
@@ -95,18 +97,18 @@ public class MatchesActivity extends AppCompatActivity {
                         foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
                     }
                     if (dataSnapshot.child("uploadUserName").getValue() != null){
-                        lat = dataSnapshot.child("uploadUserName").getValue().toString();
+                        uploadUserName = dataSnapshot.child("uploadUserName").getValue().toString();
                     }
-                    else if (dataSnapshot.child("lat").getValue() != null){
+                    if (dataSnapshot.child("lat").getValue() != null){
                         lat = dataSnapshot.child("lat").getValue().toString();
                     }
                     if (dataSnapshot.child("phone").getValue() != null){
-                        lng = dataSnapshot.child("phone").getValue().toString();
+                        phone = dataSnapshot.child("phone").getValue().toString();
                     }
-                    else if (dataSnapshot.child("lng").getValue() != null){
+                    if (dataSnapshot.child("lng").getValue() != null){
                         lng = dataSnapshot.child("lng").getValue().toString();
                     }
-                    MatchesObject obj = new MatchesObject(userId, name, foodImageUrl, lat, lng);
+                    MatchesObject obj = new MatchesObject(userId, name, foodImageUrl, lat, lng, uploadUserName, phone);
 
                     resultsMatches.add(obj);
                     mMatchesAdapter.notifyDataSetChanged();

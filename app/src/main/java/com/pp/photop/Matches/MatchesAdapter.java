@@ -40,6 +40,8 @@ public class MatchesAdapter extends RecyclerView.Adapter<MatchesViewHolders>  {
         holder.mMatchName.setText(matchesList.get(position).getName());
         holder.mMatchLat.setText(matchesList.get(position).getLat());
         holder.mMatchLng.setText(matchesList.get(position).getLng());
+        holder.mMatchPhone.setText(matchesList.get(position).getPhone());
+        holder.mUploadUserName.setText(matchesList.get(position).getUploadUserName());
         if (!matchesList.get(position).getFoodImageUrl().equals("default")){
             Glide.with(context).load(matchesList.get(position).getFoodImageUrl()).into(holder.mMatchImage);
         }
