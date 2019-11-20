@@ -9,7 +9,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -75,6 +74,7 @@ public class MainActivity extends AppCompatActivity {
     private com.pp.photop.Cards.arrayAdapter arrayAdapter;
     private int i;
 
+
     private boolean isContinue = false;
     private boolean isGPS = false;
     private FirebaseAuth mAuth;
@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference usersDb, uploadDb, geoFireDb;
     List<String> nearbyItems;
     List<String> nearbyUsersList = new ArrayList<>();
+    List<FoodProperties> foodObjects = new ArrayList<>();
     ListView listView;
     List<cards> rowItems;
     GeoQuery geoQueryNearByUser = null;
@@ -115,13 +116,13 @@ public class MainActivity extends AppCompatActivity {
         Places.initialize(getApplicationContext(), "AIzaSyAPp_5yCUKDL318bpIccPxvwgaXl0MMrjA");
         PlacesClient placesClient = Places.createClient(this);
 
-// Use fields to define the data types to return.
+        // Use fields to define the data types to return.
         List<Place.Field> placeFields = Collections.singletonList(Place.Field.NAME);
 
-// Use the builder to create a FindCurrentPlaceRequest.
+        // Use the builder to create a FindCurrentPlaceRequest.
         FindCurrentPlaceRequest request =
                 FindCurrentPlaceRequest.newInstance(placeFields);
-// Call findCurrentPlace and handle the response (first check that the user has granted permission).
+        // Call findCurrentPlace and handle the response (first check that the user has granted permission).
         if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
             placeResponse.addOnCompleteListener(new OnCompleteListener<FindCurrentPlaceResponse>() {
@@ -187,13 +188,16 @@ public class MainActivity extends AppCompatActivity {
 //                Date date = new Date(System.currentTimeMillis());
 //                usersDb.child(currentUId).child("locationHistory").child(String.valueOf(date)).setValue(latlng);
 
-                usersDb.child(currentUId).child("distance").addListenerForSingleValueEvent(new ValueEventListener() {
+                usersDb.child(currentUId).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        d[0] = dataSnapshot.getValue().toString();
-                        distance = Integer.parseInt(d[0]);
+                        String dd = dataSnapshot.child("distance").getValue().toString();
+                        if (dd != ""){
+                            distance = Integer.parseInt(dd);
+                        }
+                        else distance = 3;
+
                         distance *= 1.6;
-                        Log.d("distance", d[0]);
                         final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
 
                         geoFire.setLocation(currentUId, geoHash, new GeoFire.CompletionListener() {
@@ -235,11 +239,9 @@ public class MainActivity extends AppCompatActivity {
                                         }
                                     });
                                     //getNearbyUsers();
-
                                 }
                             }
                         });
-
                         final SwipeFlingAdapterView flingContainer = findViewById(R.id.frame);
                         flingContainer.setAdapter(arrayAdapter);
                         flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
@@ -290,45 +292,47 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
                                 Log.d("dataObject", dataObject.toString());
                                 FragmentManager fragmentManager = getSupportFragmentManager();
-
                             }
                         });
-
                     }
-
                     @Override
                     public void onCancelled(@NonNull DatabaseError databaseError) {
-
                     }
                 });
-
-
             } catch (Exception e) {
                 //  Block of code to handle errors
                 distance = 100;
                 Log.d("distanc exception", "100" + e.toString());
             }
-
-
         }
     }
     // retrieve users from database and display them on cards, based on the location and various filters:
     private void displayPotentialMatches() {
         Log.d("MainActivity", "displayPotentialMatches() triggered!");
+//        for (String f : nearbyUsersList) {
+//            Log.d("brunch", f);
+//        }
         uploadDb.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d("MainActivity", "displayPotentialMatches ON CHILD ADDED triggered!");
                 // check if there is any new potential match and if the current user hasn't swiped with them yet:
+
 //                if (dataSnapshot.exists() && !dataSnapshot.child("connections").child("nope").hasChild(currentUId) && !dataSnapshot.child("connections").child("yeps").hasChild(currentUId) && dataSnapshot.child("sex").getValue().toString().equals(oppositeUserSex)) {
 //                    String profileImageUrl = "default";
 //                    if (!dataSnapshot.child("profileImageUrl").getValue().equals("default")) {
 //                        profileImageUrl = dataSnapshot.child("profileImageUrl").getValue().toString();
 //                    }
+
                 for (String i : nearbyUsersList){
+                    //update uploads db if missing key
+//                    if(dataSnapshot.child("brunch").exists()){
+//                        String key = dataSnapshot.getKey();
+//                        uploadDb.child(key).child("brunch").setValue("false");
+//                    }
+
                     if (dataSnapshot.exists()
                             && !dataSnapshot.getKey().equals(currentUId)
-                            && !dataSnapshot.child("history").child("nope").hasChild(currentUId) && !dataSnapshot.child("history").child("yeps").hasChild(currentUId)
+                            && dataSnapshot.child("brunch").getValue().toString().equals("true")
                             // location check:
                             //&& nearbyUsersList.contains(dataSnapshot.getKey())
                             && i.equals(dataSnapshot.getKey())
@@ -365,33 +369,6 @@ public class MainActivity extends AppCompatActivity {
         });
     } // end of displayPotentialMatches()
 
-    private void getLocation() {
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    AppConstants.LOCATION_REQUEST);
-        } else {
-            if (isContinue) {
-                mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-            } else {
-                mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
-                    @Override
-                    public void onSuccess(Location location) {
-                        Log.d("GetLastLocation", location.toString());
-                        if (location != null) {
-                            mCurrentLocation = location;
-
-                            wayLatitude = location.getLatitude();
-                            wayLongitude = location.getLongitude();
-
-                        } else {
-                            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
-                        }
-                    }
-                });
-            }
-        }
-    }
 
     com.google.android.gms.location.LocationCallback locationCallback = new com.google.android.gms.location.LocationCallback() {
         @Override
@@ -653,62 +630,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public void getUserLocation() {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference().child("Locations");
-        GeoFire geoFire = new GeoFire(ref);
-        LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        Location location;
-        double longitude = 0.0;
-        double latitude = 0.0;
-        if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    Activity#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            checkLocationPermission();
-            location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            lastKnownLocation = location;
-            usersDb.child(currentUId).child("location").setValue(location);
-
-            return;
-        }
-        location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        lastKnownLocation = location;
-        System.out.println("the current location is " + location);
-
-//        longitude = location.getLongitude();
-//
-//        latitude = location.getLatitude();
-        usersDb.child(currentUId).child("location").setValue(location);
-
-
-    }
-
-    private final LocationListener locationListener = new LocationListener() {
-        public void onLocationChanged(Location location) {
-            double longitude = location.getLongitude();
-            double latitude = location.getLatitude();
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String provider) {
-
-        }
-    };
 
     public void logoutUser(View view) {
         mAuth.signOut();
@@ -742,6 +663,36 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(MainActivity.this, MapsActivity2.class );
         startActivity(intent);
         return;
+    }
+
+
+
+    private void getLocation() {
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    AppConstants.LOCATION_REQUEST);
+        } else {
+            if (isContinue) {
+                mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+            } else {
+                mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        Log.d("GetLastLocation", location.toString());
+                        if (location != null) {
+                            mCurrentLocation = location;
+
+                            wayLatitude = location.getLatitude();
+                            wayLongitude = location.getLongitude();
+
+                        } else {
+                            mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+                        }
+                    }
+                });
+            }
+        }
     }
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
