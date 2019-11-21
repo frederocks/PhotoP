@@ -65,10 +65,11 @@ class Upload {
     public String lat;
     public String lng;
     public Float rating;
+    public Long yes;
+    public Long no;
 
-    public GeoLocation geoLocation;
-
-    public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String italian, String dessert, String brunch, String mexican, String lat, String lng, Float rating, String uploadUserName, String phone) {
+    public Upload(String name, String userId, String uploadUri, String glutenfree, String vegan, String pizza, String chinese, String italian,
+                  String dessert, String brunch, String mexican, String lat, String lng, Float rating, String uploadUserName, String phone, Long yes, Long no) {
         this.name = name;
         this.userId = userId;
         this.uploadUri = uploadUri;
@@ -85,6 +86,8 @@ class Upload {
         this.rating = rating;
         this.uploadUserName = uploadUserName;
         this.phone = phone;
+        this.yes = yes;
+        this.no = no;
     }
 }
 
@@ -336,7 +339,10 @@ public class UploadActivity extends AppCompatActivity {
 //                            mUserDatabase.child("uploads").updateChildren(newImage);
                                 Double lat = location.getLatitude();
                                 Double lng = location.getLongitude();
-                                newUploadRef.setValue(new Upload(name, userId, uri.toString(), glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, lat.toString(), lng.toString(), userRating, uploadUserName, phone ));
+                                int i = 1;
+                                Long no = new Long(i);
+                                Long yes = new Long(i);
+                                newUploadRef.setValue(new Upload(name, userId, uri.toString(), glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, lat.toString(), lng.toString(), userRating, uploadUserName, phone, yes, no));
 
                                 geoFire.setLocation(newUploadRef.getKey(), new GeoLocation(lat, lng), new GeoFire.CompletionListener() {
                                     @Override

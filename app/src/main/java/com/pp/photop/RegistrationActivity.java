@@ -133,6 +133,15 @@ public class RegistrationActivity extends AppCompatActivity {
                             userInfo.put("lat", lat);
                             userInfo.put("lng", lng);
                             userInfo.put("phone", phone);
+                            userInfo.put("glutenfree", "false");
+                            userInfo.put("chinese", "false");
+                            userInfo.put("vegan", "false");
+                            userInfo.put("mexican", "false");
+                            userInfo.put("brunch", "false");
+                            userInfo.put("italian", "false");
+                            userInfo.put("pizza", "false");
+                            userInfo.put("dessert", "false");
+
                             currentUserDb.updateChildren(userInfo);
                             geoFire.setLocation(userId, new GeoLocation(lat, lng), new GeoFire.CompletionListener() {
                                 @Override

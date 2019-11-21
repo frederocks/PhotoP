@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -41,6 +40,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.annotations.Nullable;
 import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import com.pp.photop.Cards.arrayAdapter;
 import com.pp.photop.Cards.cards;
@@ -52,6 +52,24 @@ import java.util.Locale;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
+//public String glutenfree;
+//public String vegan;
+//public String pizza;
+//public String chinese;
+//public String italian;
+//public String dessert;
+//public String brunch;
+//public String mexican;
+class User {
+    public String distance;
+    public Double lat;
+    public Double lng;
+    public String name;
+    public String phone;
+    public String profileImageUrl;
+    public String userStatus;
+
+    }
 public class MainActivity extends AppCompatActivity {
 
     public static final GeoLocation NEW_YORK = new GeoLocation(40.730292, -73.990401);
@@ -176,6 +194,10 @@ public class MainActivity extends AppCompatActivity {
 //                Date date = new Date(System.currentTimeMillis());
 //                usersDb.child(currentUId).child("locationHistory").child(String.valueOf(date)).setValue(latlng);
 
+
+
+
+
                 usersDb.child(currentUId).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -184,7 +206,24 @@ public class MainActivity extends AppCompatActivity {
                             distance = Integer.parseInt(dd);
                         }
                         else distance = 3;
+
                         final String brunch = dataSnapshot.child("brunch").getValue().toString();
+                        final String glutenfree = dataSnapshot.child("glutenfree").getValue().toString();
+                        final String vegan = dataSnapshot.child("vegan").getValue().toString();
+                        final String pizza = dataSnapshot.child("pizza").getValue().toString();
+                        final String chinese = dataSnapshot.child("chinese").getValue().toString();
+                        final String italian = dataSnapshot.child("italian").getValue().toString();
+                        final String dessert = dataSnapshot.child("dessert").getValue().toString();
+                        final String mexican = dataSnapshot.child("mexican").getValue().toString();
+
+//                        final String brunch = "false";
+//                        final String glutenfree = "false";
+//                        final String vegan = "false";
+//                        final String pizza = "false";
+//                        final String chinese = "false";
+//                        final String italian = "false";
+//                        final String dessert = "false";
+//                        final String mexican = "false";
 
                         distance *= 1.6;
                         final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
@@ -206,8 +245,11 @@ public class MainActivity extends AppCompatActivity {
                                         public void onKeyEntered(String key, GeoLocation location) {
                                             Log.d("MainActivity", key + " just entered the radius. Going to display it as a potential match!");
                                             nearbyUsersList.add(key);
-                                            FoodProperties fp = new FoodProperties(key, brunch);
-                                            foodObjects.add(fp);
+                                            FoodProperties fp = new FoodProperties(key, brunch, glutenfree, vegan, pizza, chinese, italian, dessert, mexican);
+                                            if (!foodObjects.contains(fp)) {
+                                                foodObjects.add(fp);
+                                            }
+
                                         }
 
                                         @Override
@@ -347,7 +389,6 @@ public class MainActivity extends AppCompatActivity {
 //        for (String f : nearbyUsersList) {
 //            Log.d("brunch", f);
 //        }
-        rowItems.clear();
         uploadDb.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -362,15 +403,22 @@ public class MainActivity extends AppCompatActivity {
                 //for (String i : nearbyUsersList){
                 for (FoodProperties i : foodObjects){
                     //update uploads db if missing key uncomment logic operator if it exists or not
-//                    if(!dataSnapshot.child("swipeCounter").exists()){
+//                    if(dataSnapshot.child("swipeCounter").exists()){
 //                        Log.d("found itali", "doesn't exist");
 //                        String key = dataSnapshot.getKey();
-//                        uploadDb.child(key).child("swipeCounter").child("yep").setValue(0);
+//                        uploadDb.child(key).child("swipeCounter").removeValue();
 //                    }
 
                     if (dataSnapshot.exists()
                             && !dataSnapshot.getKey().equals(currentUId)
                             && dataSnapshot.child("brunch").getValue().toString().equals(i.getBrunch())
+                            && dataSnapshot.child("glutenfree").getValue().toString().equals(i.getGlutenfreeh())
+                            && dataSnapshot.child("chinese").getValue().toString().equals(i.getChinese())
+                            && dataSnapshot.child("pizza").getValue().toString().equals(i.getPizza())
+                            && dataSnapshot.child("vegan").getValue().toString().equals(i.getVegan())
+                            && dataSnapshot.child("mexican").getValue().toString().equals(i.getMexican())
+                            && dataSnapshot.child("italian").getValue().toString().equals(i.getItalian())
+//                            && dataSnapshot.child("dessert").getValue().toString().equals(i.getDessert())
                             // location check:
                             //&& nearbyUsersList.contains(dataSnapshot.getKey())
                             && i.getKey().equals(dataSnapshot.getKey())
@@ -382,8 +430,11 @@ public class MainActivity extends AppCompatActivity {
                         // POPULATE THE CARD WITH THE DATABASE INFO:
                         Log.d("MainActivity", dataSnapshot.getKey() + " passed all the match checks!");
                         cards potentialMatch = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), profilePictureURL);
-                        rowItems.add(potentialMatch);
-                        arrayAdapter.notifyDataSetChanged();
+                        if (!rowItems.contains((potentialMatch))) {
+                            rowItems.add(potentialMatch);
+                            arrayAdapter.notifyDataSetChanged();
+                        }
+
                     }
                 }
 
@@ -482,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (requestCode == 11){
             Log.d("Main Reload", "requestCode triggered");
-            rowItems.clear();
+
             loadActivity();
         }
     }
@@ -790,6 +841,176 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     // end of getNearbyUsers()
+//                    usersDb.child(currentUId).child("distance").runTransaction(new Transaction.Handler() {
+//        @NonNull
+//        @Override
+//        public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+//            User user = mutableData.getValue(User.class);
+//
+//            if (user.distance == null) {
+//                Log.d("distance ", "not found");
+//                distance = 5;
+//            }
+//            else{
+//                Log.d("distance ", "found!!!!!!!!!!!!!");
+//                distance = Integer.parseInt(user.distance);
+//            }
+//
+//            return null;
+//        }
+//
+//        @Override
+//        public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+//            //final String brunch = dataSnapshot.child("brunch").getValue().toString();
+//            final String brunch = "false";
+//            distance *= 1.6;
+//            final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
+//
+//            geoFire.setLocation(currentUId, geoHash, new GeoFire.CompletionListener() {
+//                @Override
+//                public void onComplete(String key, DatabaseError error) {
+//                    if (error != null) {
+//                        Log.d("MainActivity", "There was an error saving the location to GeoFire: " + error);
+//                    } else {
+//                        Log.d("MainActivity", "Location saved on server successfully!");
+//                        GeoQuery geoQuery;
+//                        Log.d("query dist", String.valueOf(distance));
+//                        geoQuery = geoFire.queryAtLocation(geoHash, distance);
+//                        //geoQuery.removeAllListeners();
+//                        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+//                            // user has been found within the radius:
+//                            @Override
+//                            public void onKeyEntered(String key, GeoLocation location) {
+//                                Log.d("MainActivity", key + " just entered the radius. Going to display it as a potential match!");
+//                                nearbyUsersList.add(key);
+//                                FoodProperties fp = new FoodProperties(key, brunch);
+//                                if (!foodObjects.contains(fp)) {
+//                                    foodObjects.add(fp);
+//                                }
+//
+//                            }
+//
+//                            @Override
+//                            public void onKeyExited(String key) {
+//                                Log.d("MainActivity", key + " just exited the radius.");
+//                            }
+//
+//                            @Override
+//                            public void onKeyMoved(String key, GeoLocation location) {
+//                            }
+//
+//                            // all users within the radius have been identified:
+//                            @Override
+//                            public void onGeoQueryReady() {
+//                                displayPotentialMatches();
+//                            }
+//
+//                            @Override
+//                            public void onGeoQueryError(DatabaseError error) {
+//                            }
+//                        });
+//                        //getNearbyUsers();
+//                    }
+//                }
+//            });
+//            final SwipeFlingAdapterView flingContainer = findViewById(R.id.frame);
+//            flingContainer.setAdapter(arrayAdapter);
+//            flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+//                @Override
+//                public void removeFirstObjectInAdapter() {
+//                    // this is the simplest way to delete an object from the Adapter (/AdapterView)
+//                    Log.d("LIST", "removed object!");
+//                    rowItems.remove(0);
+//                    arrayAdapter.notifyDataSetChanged();
+//                }
+//
+//                @Override
+//                public void onLeftCardExit(Object dataObject) {
+//                    //Do something on the left!
+//                    //You also have access to the original object.
+//                    //If you want to use it just cast it (String) dataObject
+//                    cards obj = (cards) dataObject;
+//                    String foodId = obj.getUserId();
+//                    usersDb.child(currentUId).child("history").child("nope").child(foodId).setValue(true);
+//                    uploadDb.child(foodId).child("no").runTransaction(new Transaction.Handler() {
+//
+//                        @Override
+//                        public Transaction.Result doTransaction( MutableData mutableData) {
+//                            Long l = mutableData.getValue(Long.class);
+//                            if (l == null) {
+//                                return Transaction.success(mutableData);
+//                            }
+//                            else {
+//                                l++;
+//                            }
+//                            mutableData.setValue(l);
+//                            return Transaction.success(mutableData);
+//                        }
+//
+//                        @Override
+//                        public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+//                            Log.d("Posttrans", "posttransaction on complete " + databaseError);
+//
+//                        }
+//                    });
+//                    Toast.makeText(MainActivity.this, "left", Toast.LENGTH_SHORT).show();
+//                }
+//
+//                @Override
+//                public void onRightCardExit(Object dataObject) {
+//                    cards obj = (cards) dataObject;
+//                    String foodId = obj.getUserId();
+//                    usersDb.child(currentUId).child("history").child("yep").child(foodId).setValue(true);
+//                    //update no counter
+//
+//                    uploadDb.child(foodId).child("yes").runTransaction(new Transaction.Handler() {
+//
+//                        @Override
+//                        public Transaction.Result doTransaction( MutableData mutableData) {
+//                            Long l = mutableData.getValue(Long.class);
+//                            if (l == null) {
+//                                return Transaction.success(mutableData);
+//                            }
+//                            else {
+//                                l++;
+//                            }
+//                            mutableData.setValue(l);
+//                            return Transaction.success(mutableData);
+//                        }
+//
+//                        @Override
+//                        public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+//                            Log.d("Posttrans", "posttransaction on complete " + databaseError);
+//
+//                        }
+//                    });
+//                    Toast.makeText(MainActivity.this, "right", Toast.LENGTH_SHORT).show();
+//                }
+//
+//                @Override
+//                public void onAdapterAboutToEmpty(int itemsInAdapter) {
+//                }
+//
+//                @Override
+//                public void onScroll(float scrollProgressPercent) {
+//                }
+//            });
+//            // Optionally add an OnItemClickListener
+//            flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+//                @Override
+//                public void onItemClicked(int itemPosition, Object dataObject) {
+////                                Fra layoutToAdd;
+////                                FragmentManager fragmentManager = getSupportFragmentManager();
+//////                                layoutToAdd = findViewById(R.id.map);
+////                                @SuppressLint("ResourceType") View fragment =  findViewById(R.layout.activity_maps2);
+////                                //LayoutInflater inflater = LayoutInflater.from(getBaseContext());
+//
+//                    Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
+//                    Log.d("dataObject", dataObject.toString());
+//                }
+//            });
+//        }
+//    });
     private void isConnectionMatch(String userId) {
         DatabaseReference currentUserConnectionsDb = usersDb.child(currentUId).child("connections").child("yeps").child(userId);
         currentUserConnectionsDb.addListenerForSingleValueEvent(new ValueEventListener() {
