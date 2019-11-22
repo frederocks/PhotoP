@@ -192,13 +192,17 @@ public class MainActivity extends AppCompatActivity {
 //                String lng = Double.toString(location.getLongitude());
 //                String latlng = lat + ", " + lng;
 //                Date date = new Date(System.currentTimeMillis());
-//                usersDb.child(currentUId).child("locationHistory").child(String.valueOf(date)).setValue(latlng);
+
+//        mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+//            @Override
+//            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
+//                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+//                    if (map.get("distance")!= null){
+//
 
 
-
-
-
-                usersDb.child(currentUId).addValueEventListener(new ValueEventListener() {
+                usersDb.child(currentUId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         String dd = dataSnapshot.child("distance").getValue().toString();
@@ -238,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                                     GeoQuery geoQuery;
                                     Log.d("query dist", String.valueOf(distance));
                                     geoQuery = geoFire.queryAtLocation(geoHash, distance);
-                                    //geoQuery.removeAllListeners();
+                                    geoQuery.removeAllListeners();
                                     geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
                                         // user has been found within the radius:
                                         @Override
@@ -271,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
                                         public void onGeoQueryError(DatabaseError error) {
                                         }
                                     });
+                                    
                                     //getNearbyUsers();
                                 }
                             }
@@ -346,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
 
                                     }
                                 });
-                                Toast.makeText(MainActivity.this, "right", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
                             }
 
                             @Override
@@ -389,6 +394,8 @@ public class MainActivity extends AppCompatActivity {
 //        for (String f : nearbyUsersList) {
 //            Log.d("brunch", f);
 //        }
+
+
         uploadDb.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -403,10 +410,10 @@ public class MainActivity extends AppCompatActivity {
                 //for (String i : nearbyUsersList){
                 for (FoodProperties i : foodObjects){
                     //update uploads db if missing key uncomment logic operator if it exists or not
-//                    if(dataSnapshot.child("swipeCounter").exists()){
-//                        Log.d("found itali", "doesn't exist");
+//                    if(!dataSnapshot.child("dessert").exists()){
+//                        Log.d("found dessert", "doesn't exist");
 //                        String key = dataSnapshot.getKey();
-//                        uploadDb.child(key).child("swipeCounter").removeValue();
+//                        uploadDb.child(key).child("dessert").setValue("false");
 //                    }
 
                     if (dataSnapshot.exists()
@@ -418,7 +425,7 @@ public class MainActivity extends AppCompatActivity {
                             && dataSnapshot.child("vegan").getValue().toString().equals(i.getVegan())
                             && dataSnapshot.child("mexican").getValue().toString().equals(i.getMexican())
                             && dataSnapshot.child("italian").getValue().toString().equals(i.getItalian())
-//                            && dataSnapshot.child("dessert").getValue().toString().equals(i.getDessert())
+                            && dataSnapshot.child("dessert").getValue().toString().equals(i.getDessert())
                             // location check:
                             //&& nearbyUsersList.contains(dataSnapshot.getKey())
                             && i.getKey().equals(dataSnapshot.getKey())
