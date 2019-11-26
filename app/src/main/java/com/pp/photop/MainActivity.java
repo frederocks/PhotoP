@@ -49,6 +49,7 @@ import com.pp.photop.Matches.MatchesActivity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
@@ -102,6 +103,14 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     List<cards> rowItems;
     GeoQuery geoQueryNearByUser = null;
+    String brunch = "false";
+    String glutenfree = "false";
+    String vegan = "false";
+    String pizza = "false";
+    String chinese = "false";
+    String italian = "false";
+    String dessert = "false";
+    String mexican = "false";
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -200,35 +209,42 @@ public class MainActivity extends AppCompatActivity {
 //                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 //                    if (map.get("distance")!= null){
 //
-
-
                 usersDb.child(currentUId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        String dd = dataSnapshot.child("distance").getValue().toString();
-                        if (dd != ""){
-                            distance = Integer.parseInt(dd);
+                        if (dataSnapshot.exists()) {
+                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                            if (map.get("distance")!= null){
+                                distance = Integer.parseInt(map.get("distance").toString());
+
+                            }
+                            else distance = 5;
+                            if (map.get("brunch")!= null) {
+                                brunch = map.get("brunch").toString();
+                            }
+                            if (map.get("glutenfree")!= null) {
+                                glutenfree = map.get("glutenfree").toString();
+                            }
+                            if (map.get("vegan")!= null) {
+                                vegan = map.get("vegan").toString();
+                            }
+                            if (map.get("pizza")!= null) {
+                                pizza = map.get("pizza").toString();
+                            }
+                            if (map.get("chinese")!= null) {
+                                chinese = map.get("chinese").toString();
+                            }
+                            if (map.get("italian")!= null) {
+                                italian = map.get("italian").toString();
+                            }
+                            if (map.get("dessert")!= null) {
+                                dessert = map.get("dessert").toString();
+                            }
+                            if (map.get("mexican")!= null) {
+                                mexican = map.get("mexican").toString();
+                            }
+
                         }
-                        else distance = 3;
-
-                        final String brunch = dataSnapshot.child("brunch").getValue().toString();
-                        final String glutenfree = dataSnapshot.child("glutenfree").getValue().toString();
-                        final String vegan = dataSnapshot.child("vegan").getValue().toString();
-                        final String pizza = dataSnapshot.child("pizza").getValue().toString();
-                        final String chinese = dataSnapshot.child("chinese").getValue().toString();
-                        final String italian = dataSnapshot.child("italian").getValue().toString();
-                        final String dessert = dataSnapshot.child("dessert").getValue().toString();
-                        final String mexican = dataSnapshot.child("mexican").getValue().toString();
-
-//                        final String brunch = "false";
-//                        final String glutenfree = "false";
-//                        final String vegan = "false";
-//                        final String pizza = "false";
-//                        final String chinese = "false";
-//                        final String italian = "false";
-//                        final String dessert = "false";
-//                        final String mexican = "false";
-
                         distance *= 1.6;
                         final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
 
@@ -275,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
                                         public void onGeoQueryError(DatabaseError error) {
                                         }
                                     });
-                                    
+
                                     //getNearbyUsers();
                                 }
                             }

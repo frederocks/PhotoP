@@ -2,12 +2,9 @@ package com.pp.photop;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -114,16 +111,19 @@ public class RegistrationActivity extends AppCompatActivity {
                             }
                             mGeoFireDatabase = FirebaseDatabase.getInstance().getReference().child("GeoFire");
                             final GeoFire geoFire = new GeoFire(mGeoFireDatabase);
-                            final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                            final GeoLocation geoLocation;
-                            final Location location;
-
-                            location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+//                            final LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+//                            final GeoLocation geoLocation;
+//                            final Location location;
+//
+//                            location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             String userId = mAuth.getCurrentUser().getUid();
                             DatabaseReference currentUserDb = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
                             //DatabaseReference currentUserDb = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
-                            Double lat = location.getLatitude();
-                            Double lng = location.getLongitude();
+//                            Double lat = location.getLatitude();
+//                            Double lng = location.getLongitude();
+                            Double lat = 43.544327;
+                            Double lng = -96.730641;
+
 
                             Map userInfo = new HashMap<>();
                             userInfo.put("name", name);
