@@ -8,10 +8,7 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +26,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.pp.photop.databinding.ActivityRegistrationBinding;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,21 +35,17 @@ import static com.pp.photop.MainActivity.MY_PERMISSIONS_REQUEST_LOCATION;
 
 public class RegistrationActivity extends AppCompatActivity {
 
-    private Button mRegister;
-
-    private EditText mEmail, mPassword, mName, mPhone;
-
-    private RadioGroup mRadioGroup;
-
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener firebaseAuthStateListener;
     private DatabaseReference mGeoFireDatabase;
 
+    private ActivityRegistrationBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_registration);
+        binding = ActivityRegistrationBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         mAuth = FirebaseAuth.getInstance();
         firebaseAuthStateListener = new FirebaseAuth.AuthStateListener() {
@@ -67,29 +61,29 @@ public class RegistrationActivity extends AppCompatActivity {
             }
         };
 
-        mRegister = (Button) findViewById(R.id.register);
-
-        mEmail = (EditText) findViewById(R.id.email);
-        mPassword = (EditText) findViewById(R.id.password);
-        mName = (EditText) findViewById(R.id.name);
-        mPhone = findViewById(R.id.phone);
-        mRadioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-
-        mRegister.setOnClickListener(new View.OnClickListener() {
+        binding.register.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                int selectId = mRadioGroup.getCheckedRadioButtonId();
-
-                final RadioButton radioButton = (RadioButton) findViewById(selectId);
-
-                if (radioButton.getText() == null){
+                int selectId = binding.radioGroup.getCheckedRadioButtonId();
+                if( selectId == -1 ) {
                     return;
                 }
 
-                final String email = mEmail.getText().toString().trim();
-                final String password = mPassword.getText().toString();
-                final String name = mName.getText().toString();
-                final String phone = mPhone.getText().toString();
+                int selectedChildIndex = -1;
+                for( int i = 0; i < binding.radioGroup.getChildCount() && selectedChildIndex == -1; i++ ) {
+                    if( selectId == binding.radioGroup.getChildAt(i).getId() ) {
+                        selectedChildIndex = selectId;
+                    }
+                }
+                if( selectedChildIndex == -1 ) {
+                    return;
+                }
+                final RadioButton radioButton = (RadioButton) binding.radioGroup.getChildAt(selectedChildIndex);
+
+                final String email = binding.email.getText().toString().trim();
+                final String password = binding.password.getText().toString();
+                final String name = binding.name.getText().toString();
+                final String phone = binding.phone.getText().toString();
                 mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(RegistrationActivity.this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {

@@ -16,11 +16,7 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.RatingBar;
 
 import androidx.annotation.NonNull;
@@ -42,6 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.pp.photop.databinding.ActivityUploadBinding;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -93,118 +90,102 @@ class Upload {
 
 public class UploadActivity extends AppCompatActivity {
     public static final int CAMERA_PIC_REQUEST = 2;
-    private EditText mNameField;
-    private ImageView mFoodPhoto;
     double lat = 43.547302;
     double lng = -96.728333;
     //List<String> LatLng1 = new ArrayList<String>();
 
     String[] mLatLng = {Double.toString(lat), Double.toString(lng)};
     //LatLng mFoodLatLng = new Array(lat, lng);
-    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mItalian, mDessert, mBrunch, mMexican;
-    private Button mBack, mConfirm;
-    private RatingBar mRating;
     private FirebaseAuth mAuth;
     private DatabaseReference mUploadsDatabase, mUserDatabase, mGeoFireDatabase;
     private String userId, name, uploadUserName, phone,glutenfree = "false", vegan= "false", pizza= "false", chinese= "false", italian= "false", dessert= "false", brunch= "false", mexican= "false";
     private Uri resultUri;
     private Bitmap image;
     private float userRating = (float) 1.0;
+    ActivityUploadBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_upload);
-        mNameField = findViewById(R.id.name);
-        mFoodPhoto = findViewById(R.id.foodPhoto);
-        mBack = findViewById(R.id.back);
-        mConfirm = findViewById(R.id.confirm);
-        mGlutenFree = findViewById(R.id.glutenfree);
-        mVegan = findViewById(R.id.vegan);
-        mPizza = findViewById(R.id.pizza);
-        mChinese = findViewById(R.id.chinese);
-        mItalian = findViewById(R.id.italian);
-        mDessert = findViewById(R.id.dessert);
-        mBrunch = findViewById(R.id.brunch);
-        mMexican = findViewById(R.id.mexican);
-        mRating = findViewById(R.id.rating);
+        binding = ActivityUploadBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
-        mRating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+        binding.rating.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
                 userRating = rating;
             }
         });
 
-        mGlutenFree.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.glutenfree.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mGlutenFree.isChecked()){
+                if (binding.glutenfree.isChecked()){
                     glutenfree = "true";
                 }
                 else glutenfree = "false";
             }
         });
-        mVegan.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.vegan.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mVegan.isChecked()){
+                if (binding.vegan.isChecked()){
                     vegan = "true";
                 }
                 else vegan = "false";
             }
         });
 
-        mPizza.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.pizza.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mPizza.isChecked()){
+                if (binding.pizza.isChecked()){
                     pizza = "true";
                 }
                 else pizza = "false";
             }
         });
-        mChinese.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.chinese.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mChinese.isChecked()){
+                if (binding.chinese.isChecked()){
                     chinese = "true";
                 }
                 else chinese = "false";
             }
         });
-        mItalian.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.italian.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mItalian.isChecked()){
+                if (binding.italian.isChecked()){
                     italian = "true";
                 }
                 else italian = "false";
             }
         });
-        mDessert.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.dessert.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mDessert.isChecked()){
+                if (binding.dessert.isChecked()){
                     dessert = "true";
                 }
                 else dessert = "false";
             }
         });
-        mBrunch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.brunch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mBrunch.isChecked()){
+                if (binding.brunch.isChecked()){
                     brunch = "true";
                 }
                 else brunch = "false";
             }
         });
-        mMexican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        binding.mexican.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mMexican.isChecked()){
+                if (binding.mexican.isChecked()){
                     mexican = "true";
                 }
                 else mexican = "false";
@@ -220,7 +201,7 @@ public class UploadActivity extends AppCompatActivity {
 
         mGeoFireDatabase = FirebaseDatabase.getInstance().getReference().child("GeoFire");
 
-        mFoodPhoto.setOnClickListener(new View.OnClickListener() {
+        binding.foodPhoto.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //to choose from file
@@ -234,7 +215,7 @@ public class UploadActivity extends AppCompatActivity {
 
             }
         });
-        mConfirm.setOnClickListener(new View.OnClickListener() {
+        binding.confirm.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.M)
             @Override
             public void onClick(View v) {
@@ -242,7 +223,7 @@ public class UploadActivity extends AppCompatActivity {
                 saveFoodInformation();
             }
         });
-        mBack.setOnClickListener(new View.OnClickListener() {
+        binding.back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 finish();
@@ -254,7 +235,7 @@ public class UploadActivity extends AppCompatActivity {
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     private void saveFoodInformation() {
-        name = mNameField.getText().toString();
+        name = binding.name.getText().toString();
         mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -385,7 +366,7 @@ public class UploadActivity extends AppCompatActivity {
             //getting from from phone gallery
             final Uri imageUri = data.getData();
             resultUri = imageUri;
-            mFoodPhoto.setImageURI(resultUri);
+            binding.foodPhoto.setImageURI(resultUri);
         }
     }
 
