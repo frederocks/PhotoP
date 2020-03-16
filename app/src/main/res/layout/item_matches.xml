@@ -3,56 +3,58 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="20sp">
+    android:padding="@dimen/margin_medium">
+
     <ImageView
-        android:layout_width="50sp"
-        android:layout_height="50sp"
+        android:layout_width="@dimen/image_width_small"
+        android:layout_height="@dimen/image_height_small"
         android:src="@mipmap/ic_launcher"
-        android:id="@+id/MatchImage"
-        >
-    </ImageView>
+        android:id="@+id/MatchImage" />
+
     <LinearLayout
-        android:padding="20sp"
+        android:padding="@dimen/margin_medium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_gravity="center">
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Match's Name"
+            android:text="@string/match_name"
             android:layout_gravity="center"
             android:id="@+id/MatchName"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Uploader's name"
+            android:text="@string/uploader_name"
             android:layout_gravity="center"
             android:id="@+id/MatchUploadUserName"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Uploader's phone"
+            android:text="@string/uploader_phone"
             android:layout_gravity="center"
             android:id="@+id/MatchPhone"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Match's ID"
+            android:text="@string/match_id"
             android:layout_gravity="center"
             android:id="@+id/MatchId"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lat"
+            android:text="@string/lat"
             android:layout_gravity="center"
             android:id="@+id/MatchLat"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Lng"
+            android:text="@string/lng"
             android:layout_gravity="center"
             android:id="@+id/MatchLng"/>
+
     </LinearLayout>
 
 

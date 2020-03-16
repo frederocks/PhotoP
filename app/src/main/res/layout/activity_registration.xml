@@ -7,16 +7,15 @@
     tools:context=".RegistrationActivity"
     android:orientation="vertical">
 
-
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Business Name"
+        android:hint="@string/business_name"
         android:id="@+id/name"/>
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Phone Number"
+        android:hint="@string/phone_number"
         android:id="@+id/phone"/>
     <RadioGroup
         android:layout_width="match_parent"
@@ -25,27 +24,27 @@
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Individual" />
+            android:text="@string/individual" />
         <RadioButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Owner" />
+            android:text="@string/owner" />
     </RadioGroup>
 
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="email"
+        android:hint="@string/email"
         android:id="@+id/email"/>
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="password"
+        android:hint="@string/password"
         android:inputType="textPassword"
         android:id="@+id/password"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Register"
+        android:text="@string/register"
         android:id="@+id/register"/>
 </LinearLayout>
