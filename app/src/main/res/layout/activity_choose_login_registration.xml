@@ -9,12 +9,12 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="login"
+        android:text="@string/login_lc"
         android:id="@+id/login"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="register"
+        android:text="@string/register_lc"
         android:id="@+id/register"/>
 
 </LinearLayout>
