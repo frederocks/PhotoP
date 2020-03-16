@@ -13,8 +13,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,10 +43,10 @@ import com.lorentzos.flingswipe.SwipeFlingAdapterView;
 import com.pp.photop.Cards.arrayAdapter;
 import com.pp.photop.Cards.cards;
 import com.pp.photop.Matches.MatchesActivity;
+import com.pp.photop.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
@@ -91,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
     private String currentUId;
 
     private FusedLocationProviderClient mFusedLocationClient;
-    private TextView txtLocation;
     private LocationRequest locationRequest;
     private GeoFire geoFire;
     private int distance = 5;
@@ -100,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
     List<String> nearbyItems;
     List<String> nearbyUsersList = new ArrayList<>();
     List<FoodProperties> foodObjects = new ArrayList<>();
-    ListView listView;
     List<cards> rowItems;
     GeoQuery geoQueryNearByUser = null;
     String brunch = "false";
@@ -112,6 +108,8 @@ public class MainActivity extends AppCompatActivity {
     String dessert = "false";
     String mexican = "false";
 
+    private ActivityMainBinding binding;
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +119,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void loadActivity(){
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         locationRequest = LocationRequest.create();
@@ -170,7 +169,6 @@ public class MainActivity extends AppCompatActivity {
         geoFireDb = FirebaseDatabase.getInstance().getReference().child("GeoFire");
         geoFire = new GeoFire(geoFireDb);
         GeoQuery geoQueryNearby = null;
-        //this.txtLocation = (TextView) findViewById(R.id.txtLocation);
         mAuth = FirebaseAuth.getInstance();
         currentUId = mAuth.getCurrentUser().getUid();
         rowItems = new ArrayList<cards>();
@@ -296,9 +294,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                        final SwipeFlingAdapterView flingContainer = findViewById(R.id.frame);
-                        flingContainer.setAdapter(arrayAdapter);
-                        flingContainer.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+                        binding.frame.setAdapter(arrayAdapter);
+                        binding.frame.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
                             @Override
                             public void removeFirstObjectInAdapter() {
                                 // this is the simplest way to delete an object from the Adapter (/AdapterView)
@@ -379,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                         // Optionally add an OnItemClickListener
-                        flingContainer.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
+                        binding.frame.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
                             @Override
                             public void onItemClicked(int itemPosition, Object dataObject) {
 //                                Fra layoutToAdd;
@@ -504,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
                     if (location != null) {
                         wayLatitude = location.getLatitude();
                         wayLongitude = location.getLongitude();
-                        txtLocation.setText(String.format(Locale.US, "%s -- %s", wayLatitude, wayLongitude));
+                        //binding.txtLocation.setText(String.format(Locale.US, "%s -- %s", wayLatitude, wayLongitude));
                     }
                 }
             });

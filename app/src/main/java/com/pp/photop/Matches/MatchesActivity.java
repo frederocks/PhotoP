@@ -14,38 +14,35 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.pp.photop.R;
+import com.pp.photop.databinding.ActivityMatchesBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MatchesActivity extends AppCompatActivity {
-    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mMatchesAdapter;
-    private RecyclerView.LayoutManager mMatchesLayoutManager;
     private GeoFire geoFire;
     private DatabaseReference geoFireDb;
     private String currentUserID;
 
+    private ActivityMatchesBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_matches);
+        binding = ActivityMatchesBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         geoFireDb = FirebaseDatabase.getInstance().getReference().child("GeoFire");
         geoFire = new GeoFire(geoFireDb);
 
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        mRecyclerView.setNestedScrollingEnabled(false);
-        mRecyclerView.setHasFixedSize(true);
-        mMatchesLayoutManager = new LinearLayoutManager(MatchesActivity.this);
-        mRecyclerView.setLayoutManager(mMatchesLayoutManager);
+        binding.recyclerView.setHasFixedSize(true);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mMatchesAdapter = new MatchesAdapter(getDataSetMatches(), MatchesActivity.this);
-        mRecyclerView.setAdapter((mMatchesAdapter));
+        mMatchesAdapter = new MatchesAdapter(getDataSetMatches());
+        binding.recyclerView.setAdapter((mMatchesAdapter));
 
         getUserMatchId();
 

@@ -7,10 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.Toast;
 
@@ -30,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.pp.photop.databinding.ActivitySettingsBinding;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,12 +36,6 @@ import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private EditText mNameField, mPhoneField;
-
-    private Button mBack, mConfirm;
-    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mItalian, mDessert, mBrunch, mMexican;
-    private ImageView mProfileImage;
-    private SeekBar mSeekBar;
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
     int progressChangedValue = 3;
@@ -51,37 +43,21 @@ public class SettingsActivity extends AppCompatActivity {
     private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, distance;
 
     private Uri resultUri;
+    private ActivitySettingsBinding binding;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
 
-        mNameField = (EditText) findViewById(R.id.name);
-        mPhoneField = (EditText) findViewById(R.id.phone);
-        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
-        mProfileImage = (ImageView) findViewById(R.id.profileImage);
-
-        mBack = (Button) findViewById(R.id.back);
-        mConfirm = (Button) findViewById(R.id.confirm);
-
-        mGlutenFree = (CheckBox) findViewById(R.id.glutenfree);
-        mVegan = (CheckBox) findViewById(R.id.vegan);
-        mPizza = (CheckBox) findViewById(R.id.pizza);
-        mChinese = (CheckBox) findViewById(R.id.chinese);
-        mItalian = (CheckBox) findViewById(R.id.italian);
-        mDessert = (CheckBox) findViewById(R.id.dessert);
-        mBrunch = (CheckBox) findViewById(R.id.brunch);
-        mMexican = (CheckBox) findViewById(R.id.mexican);
-
-        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
         //mSeekBar.setProgress(savedProgress);
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        binding.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -102,7 +78,7 @@ public class SettingsActivity extends AppCompatActivity {
 
 
         getUserInfo();
-        mProfileImage.setOnClickListener(new View.OnClickListener() {
+        binding.profileImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_PICK);
@@ -110,13 +86,13 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivityForResult(intent, 1);
             }
         });
-        mConfirm.setOnClickListener(new View.OnClickListener() {
+        binding.confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 saveUserInformation();
             }
         });
-        mBack.setOnClickListener(new View.OnClickListener() {
+        binding.back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 finish();
@@ -135,71 +111,71 @@ public class SettingsActivity extends AppCompatActivity {
                     if (map.get("distance")!= null){
                         distance = map.get("distance").toString();
                         savedProgress = Integer.parseInt(distance);
-                        mSeekBar.setProgress(savedProgress);
+                        binding.seekbar.setProgress(savedProgress);
                     }
                     if (map.get("name")!=null){
                         name = map.get("name").toString();
-                        mNameField.setText(name);
+                        binding.name.setText(name);
                     }
                     if (map.get("phone")!=null){
                         phone = map.get("phone").toString();
-                        mPhoneField.setText(phone);
+                        binding.phone.setText(phone);
                     }
                     if (map.get("glutenfree")!=null){
                         glutenfree = map.get("glutenfree").toString();
                         if (glutenfree == "true"){
-                            mGlutenFree.setChecked(true);
+                            binding.glutenfree.setChecked(true);
                         }
-                        else mGlutenFree.setChecked(false);
+                        else binding.glutenfree.setChecked(false);
                     }
                     if (map.get("vegan")!=null){
                         vegan = map.get("vegan").toString();
                         if (vegan == "true"){
-                            mVegan.setChecked(true);
+                            binding.vegan.setChecked(true);
                         }
-                        else mVegan.setChecked(false);
+                        else binding.vegan.setChecked(false);
                     }
                     if (map.get("pizza")!=null){
                         pizza = map.get("pizza").toString();
                         if (pizza == "true"){
-                            mPizza.setChecked(true);
+                            binding.pizza.setChecked(true);
                         }
-                        else mPizza.setChecked(false);
+                        else binding.pizza.setChecked(false);
                     }
                     if (map.get("chinese")!=null){
                         chinese = map.get("chinese").toString();
                         if (chinese == "true"){
-                            mChinese.setChecked(true);
+                            binding.chinese.setChecked(true);
                         }
-                        else mChinese.setChecked(false);
+                        else binding.chinese.setChecked(false);
                     }
                     if (map.get("italian")!=null){
                         italian = map.get("italian").toString();
                         if (italian == "true"){
-                            mItalian.setChecked(true);
+                            binding.italian.setChecked(true);
                         }
-                        else mItalian.setChecked(false);
+                        else binding.italian.setChecked(false);
                     }
                     if (map.get("dessert")!=null){
                         dessert = map.get("dessert").toString();
                         if (dessert == "true"){
-                            mDessert.setChecked(true);
+                            binding.dessert.setChecked(true);
                         }
-                        else mDessert.setChecked(false);
+                        else binding.dessert.setChecked(false);
                     }
                     if (map.get("brunch")!=null){
                         brunch = map.get("brunch").toString();
                         if (brunch == "true"){
-                            mBrunch.setChecked(true);
+                            binding.brunch.setChecked(true);
                         }
-                        else mBrunch.setChecked(false);
+                        else binding.brunch.setChecked(false);
                     }
                     if (map.get("mexican")!=null){
                         mexican = map.get("mexican").toString();
                         if (mexican == "true"){
-                            mMexican.setChecked(true);
+                            binding.mexican.setChecked(true);
                         }
-                        else mMexican.setChecked(false);
+                        else binding.mexican.setChecked(false);
                     }
                     if (map.get("profileImageUrl")!=null){
                         profileImageUrl = map.get("profileImageUrl").toString();
@@ -207,11 +183,11 @@ public class SettingsActivity extends AppCompatActivity {
                         //Glide.with(getApplication()).load(profileImageUrl).into(mProfileImage);
                         switch(profileImageUrl) {
                             case "default":
-                                Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(mProfileImage);
+                                Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(binding.profileImage);
                                 //mProfileImage.setImageResource(R.mipmap.ic_launcher);
                                 break;
                             default:
-                                Glide.with(getApplication()).load(profileImageUrl).into(mProfileImage);
+                                Glide.with(getApplication()).load(profileImageUrl).into(binding.profileImage);
                                 break;
                         }
                     }
@@ -228,8 +204,8 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void saveUserInformation() {
-        name = mNameField.getText().toString();
-        phone = mPhoneField.getText().toString();
+        name = binding.name.getText().toString();
+        phone = binding.phone.getText().toString();
 
         Map userInfo = new HashMap();
         userInfo.put("name", name);
@@ -289,7 +265,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (requestCode == 1 && resultCode == Activity.RESULT_OK){
             final Uri imageUri = data.getData();
             resultUri = imageUri;
-            mProfileImage.setImageURI(resultUri);
+            binding.profileImage.setImageURI(resultUri);
         }
     }
 
