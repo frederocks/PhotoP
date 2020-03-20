@@ -6,10 +6,10 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.SeekBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,12 +34,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
     int progressChangedValue = 3;
-    int savedProgress = 3;
-    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, distance;
+    private String userId, name, phone, distance;
     private String mStringFormat;
 
     private Uri resultUri;
@@ -63,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 progressChangedValue = progress;
+                updateDistance();
             }
 
             @Override
@@ -72,8 +73,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(SettingsActivity.this, String.format(mStringFormat, progressChangedValue),
-                        Toast.LENGTH_SHORT).show();
+                updateDistance();
             }
         });
 
@@ -82,6 +82,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         binding.profileImage.setOnClickListener(this);
         binding.confirm.setOnClickListener(this);
         binding.back.setOnClickListener(this);
+    }
+
+    private void updateDistance() {
+        binding.distance.setText(String.format(mStringFormat, progressChangedValue));
     }
 
     @Override
@@ -107,13 +111,16 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
-                    GenericTypeIndicator<Map<String,Object>> t = new GenericTypeIndicator<Map<String,Object>>() {};
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                    GenericTypeIndicator<Map<String, Object>> t = new GenericTypeIndicator<Map<String, Object>>() {};
                     Map<String, Object> map = dataSnapshot.getValue(t);
+                    if( map == null ) {
+                        return;
+                    }
+
                     if (map.get("distance")!= null){
                         distance = map.get("distance").toString();
-                        savedProgress = Integer.parseInt(distance);
-                        binding.seekbar.setProgress(savedProgress);
+                        binding.seekbar.setProgress(Integer.parseInt(distance));
                     }
                     if (map.get("name")!=null){
                         name = map.get("name").toString();
@@ -124,83 +131,42 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
                         binding.phone.setText(phone);
                     }
                     if (map.get("glutenfree")!=null){
-                        glutenfree = map.get("glutenfree").toString();
-                        if (glutenfree == "true"){
-                            binding.glutenfree.setChecked(true);
-                        }
-                        else binding.glutenfree.setChecked(false);
+                        binding.glutenfree.setChecked("true".equals(map.get("glutenfree").toString()));
                     }
                     if (map.get("vegan")!=null){
-                        vegan = map.get("vegan").toString();
-                        if (vegan == "true"){
-                            binding.vegan.setChecked(true);
-                        }
-                        else binding.vegan.setChecked(false);
+                        binding.vegan.setChecked("true".equals(map.get("vegan").toString()));
                     }
                     if (map.get("pizza")!=null){
-                        pizza = map.get("pizza").toString();
-                        if (pizza == "true"){
-                            binding.pizza.setChecked(true);
-                        }
-                        else binding.pizza.setChecked(false);
+                        binding.pizza.setChecked("true".equals(map.get("pizza").toString()));
                     }
                     if (map.get("chinese")!=null){
-                        chinese = map.get("chinese").toString();
-                        if (chinese == "true"){
-                            binding.chinese.setChecked(true);
-                        }
-                        else binding.chinese.setChecked(false);
+                        binding.chinese.setChecked("true".equals(map.get("chinese").toString()));
                     }
                     if (map.get("italian")!=null){
-                        italian = map.get("italian").toString();
-                        if (italian == "true"){
-                            binding.italian.setChecked(true);
-                        }
-                        else binding.italian.setChecked(false);
+                        binding.italian.setChecked("true".equals(map.get("italian").toString()));
                     }
                     if (map.get("dessert")!=null){
-                        dessert = map.get("dessert").toString();
-                        if (dessert == "true"){
-                            binding.dessert.setChecked(true);
-                        }
-                        else binding.dessert.setChecked(false);
+                        binding.dessert.setChecked("true".equals(map.get("dessert").toString()));
                     }
                     if (map.get("brunch")!=null){
-                        brunch = map.get("brunch").toString();
-                        if (brunch == "true"){
-                            binding.brunch.setChecked(true);
-                        }
-                        else binding.brunch.setChecked(false);
+                        binding.brunch.setChecked("true".equals(map.get("brunch").toString()));
                     }
                     if (map.get("mexican")!=null){
-                        mexican = map.get("mexican").toString();
-                        if (mexican == "true"){
-                            binding.mexican.setChecked(true);
-                        }
-                        else binding.mexican.setChecked(false);
+                        binding.mexican.setChecked("true".equals(map.get("mexican").toString()));
                     }
                     if (map.get("profileImageUrl")!=null){
-                        profileImageUrl = map.get("profileImageUrl").toString();
-                        //adding switch statement
-                        //Glide.with(getApplication()).load(profileImageUrl).into(mProfileImage);
-                        switch(profileImageUrl) {
-                            case "default":
-                                Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(binding.profileImage);
-                                //mProfileImage.setImageResource(R.mipmap.ic_launcher);
-                                break;
-                            default:
-                                Glide.with(getApplication()).load(profileImageUrl).into(binding.profileImage);
-                                break;
+                        String profileImageUrl = map.get("profileImageUrl").toString();
+                        if ("default".equals(profileImageUrl)) {
+                            Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(binding.profileImage);
+                        } else {
+                            Glide.with(getApplication()).load(profileImageUrl).into(binding.profileImage);
                         }
                     }
-
                 }
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
     }
@@ -216,29 +182,26 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         mUserDatabase.updateChildren(userInfo);
         if (resultUri != null){
             final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("profileImageUrl").child(userId);
-            Bitmap bitmap = null;
 
             try {
-                bitmap= MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
+
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                byte[] data = baos.toByteArray();
+                UploadTask uploadTask = filepath.putBytes(data);
+                uploadTask.addOnFailureListener(e -> finish());
+                uploadTask.addOnSuccessListener(taskSnapshot -> filepath.getDownloadUrl().addOnSuccessListener(uri -> {
+                    Map<String, Object> newImage = new HashMap<>();
+                    newImage.put("profileImageUrl", uri.toString());
+                    mUserDatabase.updateChildren(newImage);
+
+                    finish();
+                }).addOnFailureListener(e -> finish()));
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Couldn't get Bitmap from MediaStore", e);
             }
-
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
-            byte[] data = baos.toByteArray();
-            UploadTask uploadTask = filepath.putBytes(data);
-            uploadTask.addOnFailureListener(e -> finish());
-            uploadTask.addOnSuccessListener(taskSnapshot -> filepath.getDownloadUrl().addOnSuccessListener(uri -> {
-                Map newImage = new HashMap();
-                newImage.put("profileImageUrl", uri.toString());
-                mUserDatabase.updateChildren(newImage);
-
-                finish();
-            }).addOnFailureListener(e -> {
-                finish();
-            }));
-        }else{
+        } else {
             finish();
         }
     }
@@ -246,7 +209,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK){
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK && data != null) {
             resultUri = data.getData();
             binding.profileImage.setImageURI(resultUri);
         }
