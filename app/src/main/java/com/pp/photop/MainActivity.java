@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -28,13 +27,13 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
@@ -46,6 +45,7 @@ import com.pp.photop.Matches.MatchesActivity;
 import com.pp.photop.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -59,21 +59,11 @@ import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 //public String dessert;
 //public String brunch;
 //public String mexican;
-class User {
-    public String distance;
-    public Double lat;
-    public Double lng;
-    public String name;
-    public String phone;
-    public String profileImageUrl;
-    public String userStatus;
-
-    }
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GeoQueryEventListener {
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     public static final GeoLocation NEW_YORK = new GeoLocation(40.730292, -73.990401);
     public static final GeoLocation Sioux_Falls = new GeoLocation(43.5555306, -96.7228278);
-    private static final String TAG = "TAG";
 
     private cards cards_data[];
     private com.pp.photop.Cards.arrayAdapter arrayAdapter;
@@ -115,10 +105,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        loadActivity();
-
-    }
-    private void loadActivity(){
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
@@ -136,32 +122,7 @@ public class MainActivity extends AppCompatActivity {
 //        FindCurrentPlaceRequest request =
 //                FindCurrentPlaceRequest.newInstance(placeFields);
         // Call findCurrentPlace and handle the response (first check that the user has granted permission).
-        if (ContextCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-//            Task<FindCurrentPlaceResponse> placeResponse = placesClient.findCurrentPlace(request);
-//            placeResponse.addOnCompleteListener(new OnCompleteListener<FindCurrentPlaceResponse>() {
-//                @Override
-//                public void onComplete(@NonNull Task<FindCurrentPlaceResponse> task) {
-//                    if (task.isSuccessful()) {
-//                        FindCurrentPlaceResponse response = task.getResult();
-//                        for (PlaceLikelihood placeLikelihood : response.getPlaceLikelihoods()) {
-//                            Log.i(TAG, String.format("Place '%s' has likelihood: %f",
-//                                    placeLikelihood.getPlace().getName(),
-//                                    placeLikelihood.getLikelihood()));
-//                        }
-//                    } else {
-//                        Exception exception = task.getException();
-//                        if (exception instanceof ApiException) {
-//                            ApiException apiException = (ApiException) exception;
-//                            Log.e("tag", "Place not found: " + apiException.getStatusCode());
-//                        }
-//                    }
-//                }
-//            });
-        } else {
-            // A local method to request required permissions;
-            // See https://developer.android.com/training/permissions/requesting
-            checkLocationPermission();
-        }
+
         // Initialize Places.
 
         usersDb = FirebaseDatabase.getInstance().getReference().child("Users");
@@ -171,10 +132,110 @@ public class MainActivity extends AppCompatActivity {
         GeoQuery geoQueryNearby = null;
         mAuth = FirebaseAuth.getInstance();
         currentUId = mAuth.getCurrentUser().getUid();
-        rowItems = new ArrayList<cards>();
-        rowItems.clear();
-        foodObjects.clear();
+        rowItems = new ArrayList<>();
         arrayAdapter = new arrayAdapter(this, R.layout.item, rowItems);
+
+        // Optionally add an OnItemClickListener
+        binding.frame.setOnItemClickListener((itemPosition, dataObject) -> {
+//                                Fra layoutToAdd;
+//                                FragmentManager fragmentManager = getSupportFragmentManager();
+////                                layoutToAdd = findViewById(R.id.map);
+//                                @SuppressLint("ResourceType") View fragment =  findViewById(R.layout.activity_maps2);
+//                                //LayoutInflater inflater = LayoutInflater.from(getBaseContext());
+
+            Toast.makeText(this, "click", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "dataObject: " + dataObject.toString());
+        });
+
+        binding.frame.setAdapter(arrayAdapter);
+        binding.frame.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
+            @Override
+            public void removeFirstObjectInAdapter() {
+                // this is the simplest way to delete an object from the Adapter (/AdapterView)
+                Log.d(TAG, "LIST: removed object!");
+                rowItems.remove(0);
+                arrayAdapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onLeftCardExit(Object dataObject) {
+                //Do something on the left!
+                //You also have access to the original object.
+                //If you want to use it just cast it (String) dataObject
+                cards obj = (cards) dataObject;
+                String foodId = obj.getUserId();
+                usersDb.child(currentUId).child("history").child("nope").child(foodId).setValue(true);
+                uploadDb.child(foodId).child("swipeCounter").child("no").runTransaction(new Transaction.Handler() {
+                    @NonNull
+                    @Override
+                    public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+                        Long l = mutableData.getValue(Long.class);
+                        if (l == null) {
+                            return Transaction.success(mutableData);
+                        }
+                        else {
+                            l++;
+                        }
+                        mutableData.setValue(l);
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+                        Log.d(TAG, "posttransaction on complete " + databaseError);
+
+                    }
+                });
+                Toast.makeText(MainActivity.this, "left", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onRightCardExit(Object dataObject) {
+                cards obj = (cards) dataObject;
+                String foodId = obj.getUserId();
+                usersDb.child(currentUId).child("history").child("yep").child(foodId).setValue(true);
+                //update no counter
+
+                uploadDb.child(foodId).child("swipeCounter").child("yep").runTransaction(new Transaction.Handler() {
+
+                    @NonNull
+                    @Override
+                    public Transaction.Result doTransaction(@NonNull MutableData mutableData) {
+                        Long l = mutableData.getValue(Long.class);
+                        if (l == null) {
+                            return Transaction.success(mutableData);
+                        }
+                        else {
+                            l++;
+                        }
+                        mutableData.setValue(l);
+                        return Transaction.success(mutableData);
+                    }
+
+                    @Override
+                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
+                        Log.d(TAG, "posttransaction on complete " + databaseError);
+
+                    }
+                });
+                Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onAdapterAboutToEmpty(int itemsInAdapter) {
+            }
+
+            @Override
+            public void onScroll(float scrollProgressPercent) {
+            }
+        });
+
+        Log.d(TAG, "loadLocationData from onCreate");
+        loadLocationData(false);
+    }
+
+    private void loadLocationData(boolean skipPermissionsDialogIfNoPermission){
+        Log.d(TAG, "loadLocationData("+(skipPermissionsDialogIfNoPermission?"TRUE":"FALSE")+")");
         if (checkSelfPermission(ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    Activity#requestPermissions
@@ -183,18 +244,27 @@ public class MainActivity extends AppCompatActivity {
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for Activity#requestPermissions for more details.
-            Log.d("location", "location not set");
+            Log.d(TAG, "No permission to location!");
 
-            checkLocationPermission();
-            //return;
-        } else {
-            try {
-                LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-                final GeoLocation geoLocation;
-                final Location location;
-                location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                //  Block of code to try
-                final String[] d = new String[1];
+            if( !skipPermissionsDialogIfNoPermission ) {
+                Log.d(TAG, "Calling checkLocationPermission()");
+                checkLocationPermission();
+            }
+
+            return;
+        }
+
+        rowItems.clear();
+        foodObjects.clear();
+        arrayAdapter.notifyDataSetChanged();
+
+        try {
+            LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            final GeoLocation geoLocation;
+            final Location location;
+            location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            //  Block of code to try
+            final String[] d = new String[1];
 //                String lat = Double.toString(location.getLatitude());
 //                String lng = Double.toString(location.getLongitude());
 //                String latlng = lat + ", " + lng;
@@ -207,211 +277,112 @@ public class MainActivity extends AppCompatActivity {
 //                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
 //                    if (map.get("distance")!= null){
 //
-                usersDb.child(currentUId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
-                            if (map.get("distance")!= null){
-                                distance = Integer.parseInt(map.get("distance").toString());
-
-                            }
-                            else distance = 5;
-                            if (map.get("brunch")!= null) {
-                                brunch = map.get("brunch").toString();
-                            }
-                            if (map.get("glutenfree")!= null) {
-                                glutenfree = map.get("glutenfree").toString();
-                            }
-                            if (map.get("vegan")!= null) {
-                                vegan = map.get("vegan").toString();
-                            }
-                            if (map.get("pizza")!= null) {
-                                pizza = map.get("pizza").toString();
-                            }
-                            if (map.get("chinese")!= null) {
-                                chinese = map.get("chinese").toString();
-                            }
-                            if (map.get("italian")!= null) {
-                                italian = map.get("italian").toString();
-                            }
-                            if (map.get("dessert")!= null) {
-                                dessert = map.get("dessert").toString();
-                            }
-                            if (map.get("mexican")!= null) {
-                                mexican = map.get("mexican").toString();
-                            }
-
+            usersDb.child(currentUId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (dataSnapshot.exists()) {
+                        GenericTypeIndicator<Map<String,Object>> t = new GenericTypeIndicator<Map<String,Object>>() {};
+                        Map<String, Object> map = dataSnapshot.getValue(t);
+                        if (map.get("distance")!= null){
+                            distance = Integer.parseInt(map.get("distance").toString());
                         }
-                        distance *= 1.6;
-                        final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
-
-                        geoFire.setLocation(currentUId, geoHash, new GeoFire.CompletionListener() {
-                            @Override
-                            public void onComplete(String key, DatabaseError error) {
-                                if (error != null) {
-                                    Log.d("MainActivity", "There was an error saving the location to GeoFire: " + error);
-                                } else {
-                                    Log.d("MainActivity", "Location saved on server successfully!");
-                                    GeoQuery geoQuery;
-                                    Log.d("query dist", String.valueOf(distance));
-                                    geoQuery = geoFire.queryAtLocation(geoHash, distance);
-                                    geoQuery.removeAllListeners();
-                                    geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
-                                        // user has been found within the radius:
-                                        @Override
-                                        public void onKeyEntered(String key, GeoLocation location) {
-                                            Log.d("MainActivity", key + " just entered the radius. Going to display it as a potential match!");
-                                            nearbyUsersList.add(key);
-                                            FoodProperties fp = new FoodProperties(key, brunch, glutenfree, vegan, pizza, chinese, italian, dessert, mexican);
-                                            if (!foodObjects.contains(fp)) {
-                                                foodObjects.add(fp);
-                                            }
-
-                                        }
-
-                                        @Override
-                                        public void onKeyExited(String key) {
-                                            Log.d("MainActivity", key + " just exited the radius.");
-                                        }
-
-                                        @Override
-                                        public void onKeyMoved(String key, GeoLocation location) {
-                                        }
-
-                                        // all users within the radius have been identified:
-                                        @Override
-                                        public void onGeoQueryReady() {
-                                            displayPotentialMatches();
-                                        }
-
-                                        @Override
-                                        public void onGeoQueryError(DatabaseError error) {
-                                        }
-                                    });
-
-                                    //getNearbyUsers();
-                                }
-                            }
-                        });
-                        binding.frame.setAdapter(arrayAdapter);
-                        binding.frame.setFlingListener(new SwipeFlingAdapterView.onFlingListener() {
-                            @Override
-                            public void removeFirstObjectInAdapter() {
-                                // this is the simplest way to delete an object from the Adapter (/AdapterView)
-                                Log.d("LIST", "removed object!");
-                                rowItems.remove(0);
-                                arrayAdapter.notifyDataSetChanged();
-                            }
-
-                            @Override
-                            public void onLeftCardExit(Object dataObject) {
-                                //Do something on the left!
-                                //You also have access to the original object.
-                                //If you want to use it just cast it (String) dataObject
-                                cards obj = (cards) dataObject;
-                                String foodId = obj.getUserId();
-                                usersDb.child(currentUId).child("history").child("nope").child(foodId).setValue(true);
-                                uploadDb.child(foodId).child("swipeCounter").child("no").runTransaction(new Transaction.Handler() {
-
-                                    @Override
-                                    public Transaction.Result doTransaction( MutableData mutableData) {
-                                        Long l = mutableData.getValue(Long.class);
-                                        if (l == null) {
-                                            return Transaction.success(mutableData);
-                                        }
-                                        else {
-                                            l++;
-                                        }
-                                        mutableData.setValue(l);
-                                        return Transaction.success(mutableData);
-                                    }
-
-                                    @Override
-                                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
-                                        Log.d("Posttrans", "posttransaction on complete " + databaseError);
-
-                                    }
-                                });
-                                Toast.makeText(MainActivity.this, "left", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onRightCardExit(Object dataObject) {
-                                cards obj = (cards) dataObject;
-                                String foodId = obj.getUserId();
-                                usersDb.child(currentUId).child("history").child("yep").child(foodId).setValue(true);
-                                //update no counter
-
-                                uploadDb.child(foodId).child("swipeCounter").child("yep").runTransaction(new Transaction.Handler() {
-
-                                    @Override
-                                    public Transaction.Result doTransaction( MutableData mutableData) {
-                                        Long l = mutableData.getValue(Long.class);
-                                        if (l == null) {
-                                            return Transaction.success(mutableData);
-                                        }
-                                        else {
-                                            l++;
-                                        }
-                                        mutableData.setValue(l);
-                                        return Transaction.success(mutableData);
-                                    }
-
-                                    @Override
-                                    public void onComplete(@Nullable DatabaseError databaseError, boolean b, @Nullable DataSnapshot dataSnapshot) {
-                                        Log.d("Posttrans", "posttransaction on complete " + databaseError);
-
-                                    }
-                                });
-                                Toast.makeText(MainActivity.this, "Saved", Toast.LENGTH_SHORT).show();
-                            }
-
-                            @Override
-                            public void onAdapterAboutToEmpty(int itemsInAdapter) {
-                            }
-
-                            @Override
-                            public void onScroll(float scrollProgressPercent) {
-                            }
-                        });
-                        // Optionally add an OnItemClickListener
-                        binding.frame.setOnItemClickListener(new SwipeFlingAdapterView.OnItemClickListener() {
-                            @Override
-                            public void onItemClicked(int itemPosition, Object dataObject) {
-//                                Fra layoutToAdd;
-//                                FragmentManager fragmentManager = getSupportFragmentManager();
-////                                layoutToAdd = findViewById(R.id.map);
-//                                @SuppressLint("ResourceType") View fragment =  findViewById(R.layout.activity_maps2);
-//                                //LayoutInflater inflater = LayoutInflater.from(getBaseContext());
-
-                                Toast.makeText(MainActivity.this, "click", Toast.LENGTH_SHORT).show();
-                                Log.d("dataObject", dataObject.toString());
-                            }
-                        });
+                        else distance = 5;
+                        if (map.get("brunch")!= null) {
+                            brunch = map.get("brunch").toString();
+                        }
+                        if (map.get("glutenfree")!= null) {
+                            glutenfree = map.get("glutenfree").toString();
+                        }
+                        if (map.get("vegan")!= null) {
+                            vegan = map.get("vegan").toString();
+                        }
+                        if (map.get("pizza")!= null) {
+                            pizza = map.get("pizza").toString();
+                        }
+                        if (map.get("chinese")!= null) {
+                            chinese = map.get("chinese").toString();
+                        }
+                        if (map.get("italian")!= null) {
+                            italian = map.get("italian").toString();
+                        }
+                        if (map.get("dessert")!= null) {
+                            dessert = map.get("dessert").toString();
+                        }
+                        if (map.get("mexican")!= null) {
+                            mexican = map.get("mexican").toString();
+                        }
                     }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                    }
-                });
-            } catch (Exception e) {
-                //  Block of code to handle errors
-                distance = 100;
-                Log.d("distanc exception", "100" + e.toString());
-            }
+                    distance *= 1.6;
+                    final GeoLocation geoHash = new GeoLocation(location.getLatitude(), location.getLongitude());
+                    geoFire.setLocation(currentUId, geoHash, (key, error) -> onGeofireComplete(key, error, geoHash));
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                }
+            });
+        } catch (Exception e) {
+            //  Block of code to handle errors
+            distance = 100;
+            Log.d(TAG, "distanc exception: 100", e);
         }
     }
+
+    public void onGeofireComplete(String key, DatabaseError error, GeoLocation geoHash) {
+        if (error != null) {
+            Log.d(TAG, "There was an error saving the location to GeoFire: " + error);
+        } else {
+            Log.d(TAG, "Location saved on server successfully!");
+            GeoQuery geoQuery;
+            Log.d(TAG, "distance: " + distance);
+            geoQuery = geoFire.queryAtLocation(geoHash, distance);
+            geoQuery.removeAllListeners();
+            geoQuery.addGeoQueryEventListener(this);
+
+            //getNearbyUsers();
+        }
+    }
+
+    // user has been found within the radius:
+    @Override
+    public void onKeyEntered(String key, GeoLocation location1) {
+        Log.d(TAG, key + " just entered the radius. Going to display it as a potential match!");
+        nearbyUsersList.add(key);
+        FoodProperties fp = new FoodProperties(key, brunch, glutenfree, vegan, pizza, chinese, italian, dessert, mexican);
+        if (!foodObjects.contains(fp)) {
+            foodObjects.add(fp);
+        }
+    }
+
+    @Override
+    public void onKeyExited(String key) {
+        Log.d(TAG, key + " just exited the radius.");
+    }
+
+    @Override
+    public void onKeyMoved(String key, GeoLocation location1) {
+    }
+
+    // all users within the radius have been identified:
+    @Override
+    public void onGeoQueryReady() {
+        displayPotentialMatches();
+    }
+
+    @Override
+    public void onGeoQueryError(DatabaseError error) {
+    }
+
     // retrieve users from database and display them on cards, based on the location and various filters:
     private void displayPotentialMatches() {
-        Log.d("MainActivity", "displayPotentialMatches() triggered! rowsize " + rowItems.size());
+        Log.d(TAG, "displayPotentialMatches() triggered! rowsize " + rowItems.size());
 //        for (String f : nearbyUsersList) {
 //            Log.d("brunch", f);
 //        }
 
-
         uploadDb.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
                 // check if there is any new potential match and if the current user hasn't swiped with them yet:
 
 //                if (dataSnapshot.exists() && !dataSnapshot.child("connections").child("nope").hasChild(currentUId) && !dataSnapshot.child("connections").child("yeps").hasChild(currentUId) && dataSnapshot.child("sex").getValue().toString().equals(oppositeUserSex)) {
@@ -448,7 +419,7 @@ public class MainActivity extends AppCompatActivity {
                             profilePictureURL = dataSnapshot.child("uploadUri").getValue().toString();
                         }
                         // POPULATE THE CARD WITH THE DATABASE INFO:
-                        Log.d("MainActivity", dataSnapshot.getKey() + " passed all the match checks!");
+                        Log.d(TAG, dataSnapshot.getKey() + " passed all the match checks!");
                         cards potentialMatch = new cards(dataSnapshot.getKey(), dataSnapshot.child("name").getValue().toString(), profilePictureURL);
                         if (!rowItems.contains((potentialMatch))) {
                             rowItems.add(potentialMatch);
@@ -457,64 +428,31 @@ public class MainActivity extends AppCompatActivity {
 
                     }
                 }
-
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
             }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
             }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
     } // end of displayPotentialMatches()
-
-
-
-
-
-    private int locationRequestCode = 1000;
-    private double wayLatitude = 0.0, wayLongitude = 0.0;
-
-    public void CheckPermission() {
-        // check permission
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // reuqest for permission
-            ActivityCompat.requestPermissions(this, new String[]{ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
-                    locationRequestCode);
-        } else {
-            // already permission granted
-            // get location here
-            mFusedLocationClient.getLastLocation().addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                @Override
-                public void onSuccess(Location location) {
-                    if (location != null) {
-                        wayLatitude = location.getLatitude();
-                        wayLongitude = location.getLongitude();
-                        //binding.txtLocation.setText(String.format(Locale.US, "%s -- %s", wayLatitude, wayLongitude));
-                    }
-                }
-            });
-        }
-    }
-
 
     public void logoutUser(View view) {
         mAuth.signOut();
         Intent intent = new Intent(MainActivity.this, ChooseLoginRegistrationActivity.class);
         startActivity(intent);
         finish();
-        return;
     }
 
     public void goToSettings(View view) {
@@ -522,26 +460,24 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(intent, 11);
 
         //startActivity(intent);
-        return;
     }
 
     public void goToMatches(View view) {
         Intent intent = new Intent(MainActivity.this, MatchesActivity.class);
         startActivity(intent);
-        return;
     }
 
     public void goToUpload(View view) {
         Intent intent = new Intent(MainActivity.this, UploadActivity.class);
         startActivity(intent);
-        return;
 
     }
+
     public void goToMap(View view){
         Intent intent = new Intent(MainActivity.this, MapsActivity2.class );
         startActivity(intent);
-        return;
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -552,13 +488,11 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if (requestCode == 11){
-            Log.d("Main Reload", "requestCode triggered");
+            Log.d(TAG, "requestCode triggered loadLocationData()");
 
-            loadActivity();
+            loadLocationData(false);
         }
     }
-
-
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
 
@@ -581,19 +515,14 @@ public class MainActivity extends AppCompatActivity {
                 new AlertDialog.Builder(this)
                         .setTitle("Please give permission")
                         .setMessage("To allow to find you")
-                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //Prompt the user once explanation has been shown
-                                ActivityCompat.requestPermissions(MainActivity.this,
-                                        new String[]{ACCESS_FINE_LOCATION},
-                                        MY_PERMISSIONS_REQUEST_LOCATION);
-                            }
+                        .setPositiveButton("OK", (dialogInterface, i) -> {
+                            //Prompt the user once explanation has been shown
+                            ActivityCompat.requestPermissions(this,
+                                    new String[]{ACCESS_FINE_LOCATION},
+                                    MY_PERMISSIONS_REQUEST_LOCATION);
                         })
                         .create()
                         .show();
-
-
             } else {
                 // No explanation needed, we can request the permission.
                 ActivityCompat.requestPermissions(this,
@@ -604,6 +533,15 @@ public class MainActivity extends AppCompatActivity {
         } else {
             return true;
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        Log.d(TAG, "onRequestPermissionsResult("+requestCode+", "+Arrays.toString(permissions)+", "+Arrays.toString(grantResults));
+        Log.d(TAG, "onRequestPermissionsResult calling loadLocationData");
+        loadLocationData(true);
     }
 
 //    @SuppressLint("MissingPermission")
@@ -1069,7 +1007,4 @@ public class MainActivity extends AppCompatActivity {
 //        });
 //
 //    }
-
-
-
 }

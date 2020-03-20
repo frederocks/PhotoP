@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.pp.photop.databinding.ActivityChooseLoginRegistrationBinding;
 
-public class ChooseLoginRegistrationActivity extends AppCompatActivity {
+public class ChooseLoginRegistrationActivity extends AppCompatActivity implements View.OnClickListener {
 
     private ActivityChooseLoginRegistrationBinding binding;
 
@@ -18,24 +18,26 @@ public class ChooseLoginRegistrationActivity extends AppCompatActivity {
         binding = ActivityChooseLoginRegistrationBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        binding.login.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ChooseLoginRegistrationActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
-                return;
-            }
-        });
+        binding.login.setOnClickListener(this);
+        binding.register.setOnClickListener(this);
+    }
 
-        binding.register.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(ChooseLoginRegistrationActivity.this, RegistrationActivity.class);
-                startActivity(intent);
-                finish();
-                return;
-            }
-        });
+    @Override
+    public void onClick(View v) {
+        Intent intent = null;
+        switch(v.getId()) {
+            case R.id.login:
+                intent = new Intent(ChooseLoginRegistrationActivity.this, LoginActivity.class);
+                break;
+
+            case R.id.register:
+                intent = new Intent(ChooseLoginRegistrationActivity.this, RegistrationActivity.class);
+                break;
+        }
+
+        if( intent != null ) {
+            startActivity(intent);
+            finish();
+        }
     }
 }

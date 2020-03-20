@@ -16,13 +16,12 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -34,13 +33,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
 
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
     int progressChangedValue = 3;
     int savedProgress = 3;
     private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, distance;
+    private String mStringFormat;
 
     private Uri resultUri;
     private ActivitySettingsBinding binding;
@@ -52,6 +52,7 @@ public class SettingsActivity extends AppCompatActivity {
         binding = ActivitySettingsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        mStringFormat = getString(R.string.distance_format);
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
@@ -71,43 +72,44 @@ public class SettingsActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(SettingsActivity.this, progressChangedValue + " Miles" ,
+                Toast.makeText(SettingsActivity.this, String.format(mStringFormat, progressChangedValue),
                         Toast.LENGTH_SHORT).show();
             }
         });
 
 
         getUserInfo();
-        binding.profileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        binding.profileImage.setOnClickListener(this);
+        binding.confirm.setOnClickListener(this);
+        binding.back.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.profileImage:
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
                 startActivityForResult(intent, 1);
-            }
-        });
-        binding.confirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                break;
+
+            case R.id.confirm:
                 saveUserInformation();
-            }
-        });
-        binding.back.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                break;
+
+            case R.id.back:
                 finish();
-                return;
-
-            }
-        });
-
+                break;
+        }
     }
+
     private void getUserInfo(){
         mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
-                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                    GenericTypeIndicator<Map<String,Object>> t = new GenericTypeIndicator<Map<String,Object>>() {};
+                    Map<String, Object> map = dataSnapshot.getValue(t);
                     if (map.get("distance")!= null){
                         distance = map.get("distance").toString();
                         savedProgress = Integer.parseInt(distance);
@@ -207,7 +209,7 @@ public class SettingsActivity extends AppCompatActivity {
         name = binding.name.getText().toString();
         phone = binding.phone.getText().toString();
 
-        Map userInfo = new HashMap();
+        Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("name", name);
         userInfo.put("phone", phone);
         userInfo.put("distance", progressChangedValue);
@@ -226,34 +228,16 @@ public class SettingsActivity extends AppCompatActivity {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
             byte[] data = baos.toByteArray();
             UploadTask uploadTask = filepath.putBytes(data);
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    finish();
-                }
-            });
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            Map newImage = new HashMap();
-                            newImage.put("profileImageUrl", uri.toString());
-                            mUserDatabase.updateChildren(newImage);
+            uploadTask.addOnFailureListener(e -> finish());
+            uploadTask.addOnSuccessListener(taskSnapshot -> filepath.getDownloadUrl().addOnSuccessListener(uri -> {
+                Map newImage = new HashMap();
+                newImage.put("profileImageUrl", uri.toString());
+                mUserDatabase.updateChildren(newImage);
 
-                            finish();
-                            return;
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            finish();
-                            return;
-                        }
-                    });
-                }
-            });
+                finish();
+            }).addOnFailureListener(e -> {
+                finish();
+            }));
         }else{
             finish();
         }
@@ -263,8 +247,7 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == Activity.RESULT_OK){
-            final Uri imageUri = data.getData();
-            resultUri = imageUri;
+            resultUri = data.getData();
             binding.profileImage.setImageURI(resultUri);
         }
     }
@@ -275,54 +258,28 @@ public class SettingsActivity extends AppCompatActivity {
         // Check which checkbox was clicked
         switch(view.getId()) {
             case R.id.glutenfree:
-                if (checked){
-                mUserDatabase.child("glutenfree").setValue(true);
-                }
-            else{
-                    mUserDatabase.child("glutenfree").setValue(false);
-                }
+                mUserDatabase.child("glutenfree").setValue(checked);
                 break;
             case R.id.vegan:
-                if (checked){
-                    mUserDatabase.child("vegan").setValue(true);
-                }
-            else mUserDatabase.child("vegan").setValue(false);
+                mUserDatabase.child("vegan").setValue(checked);
                 break;
             case R.id.pizza:
-                if (checked){
-                    mUserDatabase.child("pizza").setValue(true);
-                }
-                else mUserDatabase.child("pizza").setValue(false);
+                mUserDatabase.child("pizza").setValue(checked);
                 break;
             case R.id.chinese:
-                if (checked){
-                    mUserDatabase.child("chinese").setValue(true);
-                }
-                else mUserDatabase.child("chinese").setValue(false);
+                mUserDatabase.child("chinese").setValue(checked);
                 break;
             case R.id.italian:
-                if (checked){
-                    mUserDatabase.child("italian").setValue(true);
-                }
-                else mUserDatabase.child("italian").setValue(false);
+                mUserDatabase.child("italian").setValue(checked);
                 break;
             case R.id.dessert:
-                if (checked){
-                    mUserDatabase.child("dessert").setValue(true);
-                }
-                else mUserDatabase.child("dessert").setValue(false);
+                mUserDatabase.child("dessert").setValue(checked);
                 break;
             case R.id.brunch:
-                if (checked){
-                    mUserDatabase.child("brunch").setValue(true);
-                }
-                else mUserDatabase.child("brunch").setValue(false);
+                mUserDatabase.child("brunch").setValue(checked);
                 break;
             case R.id.mexican:
-                if (checked){
-                    mUserDatabase.child("mexican").setValue(true);
-                }
-                else mUserDatabase.child("mexican").setValue(false);
+                mUserDatabase.child("mexican").setValue(checked);
                 break;
         }
     }
