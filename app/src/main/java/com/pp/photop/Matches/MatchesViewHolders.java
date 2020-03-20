@@ -38,8 +38,8 @@ public class MatchesViewHolders extends RecyclerView.ViewHolder implements View.
         binding.MatchLng.setText(match.getLng());
         binding.MatchPhone.setText(match.getPhone());
         binding.MatchUploadUserName.setText(match.getUploadUserName());
-        if (!match.getFoodImageUrl().equals("default")){
-            Glide.with(binding.getRoot().getContext()).load(match.getFoodImageUrl()).into(binding.MatchImage);
+        if (!match.getUploadUri().equals("default")){
+            Glide.with(binding.getRoot().getContext()).load(match.getUploadUri()).into(binding.MatchImage);
         }
     }
 }

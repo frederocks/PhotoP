@@ -24,9 +24,6 @@ public class MatchesAdapter extends RecyclerView.Adapter<MatchesViewHolders>  {
         ItemMatchesBinding itemBinding = ItemMatchesBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false);
 
-        RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        itemBinding.getRoot().setLayoutParams(lp);
-
         return new MatchesViewHolders(itemBinding);
     }
 
