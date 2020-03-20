@@ -34,4 +34,5 @@
     <string name="login_lc">login</string>
     <string name="register">Register</string>
     <string name="register_lc">register</string>
+    <string name="distance_format">%d miles</string>
 </resources>
