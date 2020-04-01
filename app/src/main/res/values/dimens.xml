@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_large">30sp</dimen>
+    <dimen name="card_radius">4dp</dimen>
+    <dimen name="card_elevation">2dp</dimen>
+    <dimen name="margin_medium">20dp</dimen>
+    <dimen name="margin_mediumlarge">26dp</dimen>
+    <dimen name="margin_large">30dp</dimen>
+    <dimen name="margin_xlarge">40dp</dimen>
+    <dimen name="image_width_small">50dp</dimen>
+    <dimen name="image_height_small">50dp</dimen>
+    <dimen name="image_width_medium">100dp</dimen>
+    <dimen name="image_height_medium">100dp</dimen>
+    <dimen name="image_width_large">200dp</dimen>
+    <dimen name="image_height_large">200dp</dimen>
+    <dimen name="image_width_xlarge">300dp</dimen>
+    <dimen name="image_height_xlarge">300dp</dimen>
+</resources>

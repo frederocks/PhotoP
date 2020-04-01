@@ -14,30 +14,26 @@
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Sign Out"
-            android:onClick="logoutUser"
-            tools:ignore="MissingConstraints" />
+            android:text="@string/sign_out"
+            android:onClick="logoutUser" />
         <Button
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Saves"
-            android:onClick="goToMatches"
-            tools:ignore="MissingConstraints" />
-        <Button
-        android:layout_weight="1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Settings"
-        android:onClick="goToSettings"
-        tools:ignore="MissingConstraints" />
+            android:text="@string/saves"
+            android:onClick="goToMatches" />
         <Button
             android:layout_weight="1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Upload"
-            android:onClick="goToUpload"
-            tools:ignore="MissingConstraints" />
+            android:text="@string/settings"
+            android:onClick="goToSettings" />
+        <Button
+            android:layout_weight="1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/upload"
+            android:onClick="goToUpload" />
 
     </LinearLayout>
 

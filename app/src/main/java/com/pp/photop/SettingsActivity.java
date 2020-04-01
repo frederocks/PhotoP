@@ -6,86 +6,64 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.SeekBar;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.pp.photop.databinding.ActivitySettingsBinding;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity implements View.OnClickListener {
+    private static final String TAG = SettingsActivity.class.getSimpleName();
 
-    private EditText mNameField, mPhoneField;
-
-    private Button mBack, mConfirm;
-    private CheckBox mGlutenFree, mVegan, mPizza, mChinese, mItalian, mDessert, mBrunch, mMexican;
-    private ImageView mProfileImage;
-    private SeekBar mSeekBar;
     private FirebaseAuth mAuth;
     private DatabaseReference mUserDatabase;
     int progressChangedValue = 3;
-    int savedProgress = 3;
-    private String userId, name, phone, profileImageUrl, glutenfree, vegan, pizza, chinese, italian, dessert, brunch, mexican, distance;
+    private String userId, name, phone, distance;
+    private String mStringFormat;
 
     private Uri resultUri;
+    private ActivitySettingsBinding binding;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        binding = ActivitySettingsBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
+        mStringFormat = getString(R.string.distance_format);
         mAuth = FirebaseAuth.getInstance();
         userId = mAuth.getCurrentUser().getUid();
         mUserDatabase = FirebaseDatabase.getInstance().getReference().child("Users").child(userId);
 
-        mNameField = (EditText) findViewById(R.id.name);
-        mPhoneField = (EditText) findViewById(R.id.phone);
-        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
-        mProfileImage = (ImageView) findViewById(R.id.profileImage);
-
-        mBack = (Button) findViewById(R.id.back);
-        mConfirm = (Button) findViewById(R.id.confirm);
-
-        mGlutenFree = (CheckBox) findViewById(R.id.glutenfree);
-        mVegan = (CheckBox) findViewById(R.id.vegan);
-        mPizza = (CheckBox) findViewById(R.id.pizza);
-        mChinese = (CheckBox) findViewById(R.id.chinese);
-        mItalian = (CheckBox) findViewById(R.id.italian);
-        mDessert = (CheckBox) findViewById(R.id.dessert);
-        mBrunch = (CheckBox) findViewById(R.id.brunch);
-        mMexican = (CheckBox) findViewById(R.id.mexican);
-
-        mSeekBar = (SeekBar) findViewById(R.id.seekbar);
         //mSeekBar.setProgress(savedProgress);
-        mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        binding.seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 progressChangedValue = progress;
+                updateDistance();
             }
 
             @Override
@@ -95,190 +73,135 @@ public class SettingsActivity extends AppCompatActivity {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Toast.makeText(SettingsActivity.this, progressChangedValue + " Miles" ,
-                        Toast.LENGTH_SHORT).show();
+                updateDistance();
             }
         });
 
 
         getUserInfo();
-        mProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        binding.profileImage.setOnClickListener(this);
+        binding.confirm.setOnClickListener(this);
+        binding.back.setOnClickListener(this);
+    }
+
+    private void updateDistance() {
+        binding.distance.setText(String.format(mStringFormat, progressChangedValue));
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.profileImage:
                 Intent intent = new Intent(Intent.ACTION_PICK);
                 intent.setType("image/*");
                 startActivityForResult(intent, 1);
-            }
-        });
-        mConfirm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                break;
+
+            case R.id.confirm:
                 saveUserInformation();
-            }
-        });
-        mBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+                break;
+
+            case R.id.back:
                 finish();
-                return;
-
-            }
-        });
-
+                break;
+        }
     }
+
     private void getUserInfo(){
         mUserDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount()>0){
-                    Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
+                if (dataSnapshot.exists() && dataSnapshot.getChildrenCount() > 0) {
+                    GenericTypeIndicator<Map<String, Object>> t = new GenericTypeIndicator<Map<String, Object>>() {};
+                    Map<String, Object> map = dataSnapshot.getValue(t);
+                    if( map == null ) {
+                        return;
+                    }
+
                     if (map.get("distance")!= null){
                         distance = map.get("distance").toString();
-                        savedProgress = Integer.parseInt(distance);
-                        mSeekBar.setProgress(savedProgress);
+                        binding.seekbar.setProgress(Integer.parseInt(distance));
                     }
                     if (map.get("name")!=null){
                         name = map.get("name").toString();
-                        mNameField.setText(name);
+                        binding.name.setText(name);
                     }
                     if (map.get("phone")!=null){
                         phone = map.get("phone").toString();
-                        mPhoneField.setText(phone);
+                        binding.phone.setText(phone);
                     }
                     if (map.get("glutenfree")!=null){
-                        glutenfree = map.get("glutenfree").toString();
-                        if (glutenfree == "true"){
-                            mGlutenFree.setChecked(true);
-                        }
-                        else mGlutenFree.setChecked(false);
+                        binding.glutenfree.setChecked("true".equals(map.get("glutenfree").toString()));
                     }
                     if (map.get("vegan")!=null){
-                        vegan = map.get("vegan").toString();
-                        if (vegan == "true"){
-                            mVegan.setChecked(true);
-                        }
-                        else mVegan.setChecked(false);
+                        binding.vegan.setChecked("true".equals(map.get("vegan").toString()));
                     }
                     if (map.get("pizza")!=null){
-                        pizza = map.get("pizza").toString();
-                        if (pizza == "true"){
-                            mPizza.setChecked(true);
-                        }
-                        else mPizza.setChecked(false);
+                        binding.pizza.setChecked("true".equals(map.get("pizza").toString()));
                     }
                     if (map.get("chinese")!=null){
-                        chinese = map.get("chinese").toString();
-                        if (chinese == "true"){
-                            mChinese.setChecked(true);
-                        }
-                        else mChinese.setChecked(false);
+                        binding.chinese.setChecked("true".equals(map.get("chinese").toString()));
                     }
                     if (map.get("italian")!=null){
-                        italian = map.get("italian").toString();
-                        if (italian == "true"){
-                            mItalian.setChecked(true);
-                        }
-                        else mItalian.setChecked(false);
+                        binding.italian.setChecked("true".equals(map.get("italian").toString()));
                     }
                     if (map.get("dessert")!=null){
-                        dessert = map.get("dessert").toString();
-                        if (dessert == "true"){
-                            mDessert.setChecked(true);
-                        }
-                        else mDessert.setChecked(false);
+                        binding.dessert.setChecked("true".equals(map.get("dessert").toString()));
                     }
                     if (map.get("brunch")!=null){
-                        brunch = map.get("brunch").toString();
-                        if (brunch == "true"){
-                            mBrunch.setChecked(true);
-                        }
-                        else mBrunch.setChecked(false);
+                        binding.brunch.setChecked("true".equals(map.get("brunch").toString()));
                     }
                     if (map.get("mexican")!=null){
-                        mexican = map.get("mexican").toString();
-                        if (mexican == "true"){
-                            mMexican.setChecked(true);
-                        }
-                        else mMexican.setChecked(false);
+                        binding.mexican.setChecked("true".equals(map.get("mexican").toString()));
                     }
                     if (map.get("profileImageUrl")!=null){
-                        profileImageUrl = map.get("profileImageUrl").toString();
-                        //adding switch statement
-                        //Glide.with(getApplication()).load(profileImageUrl).into(mProfileImage);
-                        switch(profileImageUrl) {
-                            case "default":
-                                Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(mProfileImage);
-                                //mProfileImage.setImageResource(R.mipmap.ic_launcher);
-                                break;
-                            default:
-                                Glide.with(getApplication()).load(profileImageUrl).into(mProfileImage);
-                                break;
+                        String profileImageUrl = map.get("profileImageUrl").toString();
+                        if ("default".equals(profileImageUrl)) {
+                            Glide.with(getApplication()).load(R.mipmap.ic_launcher).into(binding.profileImage);
+                        } else {
+                            Glide.with(getApplication()).load(profileImageUrl).into(binding.profileImage);
                         }
                     }
-
                 }
-
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
             }
         });
     }
 
     private void saveUserInformation() {
-        name = mNameField.getText().toString();
-        phone = mPhoneField.getText().toString();
+        name = binding.name.getText().toString();
+        phone = binding.phone.getText().toString();
 
-        Map userInfo = new HashMap();
+        Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("name", name);
         userInfo.put("phone", phone);
         userInfo.put("distance", progressChangedValue);
         mUserDatabase.updateChildren(userInfo);
         if (resultUri != null){
             final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("profileImageUrl").child(userId);
-            Bitmap bitmap = null;
 
             try {
-                bitmap= MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getApplication().getContentResolver(), resultUri);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
-            byte[] data = baos.toByteArray();
-            UploadTask uploadTask = filepath.putBytes(data);
-            uploadTask.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                byte[] data = baos.toByteArray();
+                UploadTask uploadTask = filepath.putBytes(data);
+                uploadTask.addOnFailureListener(e -> finish());
+                uploadTask.addOnSuccessListener(taskSnapshot -> filepath.getDownloadUrl().addOnSuccessListener(uri -> {
+                    Map<String, Object> newImage = new HashMap<>();
+                    newImage.put("profileImageUrl", uri.toString());
+                    mUserDatabase.updateChildren(newImage);
+
                     finish();
-                }
-            });
-            uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            Map newImage = new HashMap();
-                            newImage.put("profileImageUrl", uri.toString());
-                            mUserDatabase.updateChildren(newImage);
-
-                            finish();
-                            return;
-                        }
-                    }).addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            finish();
-                            return;
-                        }
-                    });
-                }
-            });
-        }else{
+                }).addOnFailureListener(e -> finish()));
+            } catch (IOException e) {
+                Log.e(TAG, "Couldn't get Bitmap from MediaStore", e);
+            }
+        } else {
             finish();
         }
     }
@@ -286,10 +209,9 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == Activity.RESULT_OK){
-            final Uri imageUri = data.getData();
-            resultUri = imageUri;
-            mProfileImage.setImageURI(resultUri);
+        if (requestCode == 1 && resultCode == Activity.RESULT_OK && data != null) {
+            resultUri = data.getData();
+            binding.profileImage.setImageURI(resultUri);
         }
     }
 
@@ -299,54 +221,28 @@ public class SettingsActivity extends AppCompatActivity {
         // Check which checkbox was clicked
         switch(view.getId()) {
             case R.id.glutenfree:
-                if (checked){
-                mUserDatabase.child("glutenfree").setValue(true);
-                }
-            else{
-                    mUserDatabase.child("glutenfree").setValue(false);
-                }
+                mUserDatabase.child("glutenfree").setValue(checked);
                 break;
             case R.id.vegan:
-                if (checked){
-                    mUserDatabase.child("vegan").setValue(true);
-                }
-            else mUserDatabase.child("vegan").setValue(false);
+                mUserDatabase.child("vegan").setValue(checked);
                 break;
             case R.id.pizza:
-                if (checked){
-                    mUserDatabase.child("pizza").setValue(true);
-                }
-                else mUserDatabase.child("pizza").setValue(false);
+                mUserDatabase.child("pizza").setValue(checked);
                 break;
             case R.id.chinese:
-                if (checked){
-                    mUserDatabase.child("chinese").setValue(true);
-                }
-                else mUserDatabase.child("chinese").setValue(false);
+                mUserDatabase.child("chinese").setValue(checked);
                 break;
             case R.id.italian:
-                if (checked){
-                    mUserDatabase.child("italian").setValue(true);
-                }
-                else mUserDatabase.child("italian").setValue(false);
+                mUserDatabase.child("italian").setValue(checked);
                 break;
             case R.id.dessert:
-                if (checked){
-                    mUserDatabase.child("dessert").setValue(true);
-                }
-                else mUserDatabase.child("dessert").setValue(false);
+                mUserDatabase.child("dessert").setValue(checked);
                 break;
             case R.id.brunch:
-                if (checked){
-                    mUserDatabase.child("brunch").setValue(true);
-                }
-                else mUserDatabase.child("brunch").setValue(false);
+                mUserDatabase.child("brunch").setValue(checked);
                 break;
             case R.id.mexican:
-                if (checked){
-                    mUserDatabase.child("mexican").setValue(true);
-                }
-                else mUserDatabase.child("mexican").setValue(false);
+                mUserDatabase.child("mexican").setValue(checked);
                 break;
         }
     }

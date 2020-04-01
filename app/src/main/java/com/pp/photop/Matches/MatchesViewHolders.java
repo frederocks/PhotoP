@@ -3,42 +3,43 @@ package com.pp.photop.Matches;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ImageView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.pp.photop.MapsActivity2;
-import com.pp.photop.R;
+import com.pp.photop.databinding.ItemMatchesBinding;
 
 public class MatchesViewHolders extends RecyclerView.ViewHolder implements View.OnClickListener {
-    public TextView mMatchId, mMatchName, mMatchLat, mMatchLng, mMatchPhone, mUploadUserName;
-    public ImageView mMatchImage;
+    public ItemMatchesBinding binding;
 
-    public MatchesViewHolders(@NonNull View itemView) {
-        super(itemView);
-        itemView.setOnClickListener(this);
-
-        mMatchId = (TextView) itemView.findViewById(R.id.MatchId);
-        mMatchName = (TextView) itemView.findViewById(R.id.MatchName);
-        mMatchLat = (TextView) itemView.findViewById(R.id.MatchLat);
-        mMatchLng = (TextView) itemView.findViewById(R.id.MatchLng);
-        mMatchImage = (ImageView) itemView.findViewById(R.id.MatchImage);
-        mMatchPhone = itemView.findViewById(R.id.MatchPhone);
-        mUploadUserName = itemView.findViewById(R.id.MatchUploadUserName);
+    public MatchesViewHolders(@NonNull ItemMatchesBinding binding) {
+        super(binding.getRoot());
+        this.binding = binding;
+        binding.getRoot().setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-
-        Intent intent = new Intent(itemView.getContext(), MapsActivity2.class);
+        Intent intent = new Intent(v.getContext(), MapsActivity2.class);
         Bundle b = new Bundle();
-        b.putString("lat", mMatchLat.getText().toString());
-        b.putString("lng", mMatchLng.getText().toString());
-        b.putString("name", mMatchName.getText().toString());
+        b.putString("lat", binding.MatchLat.getText().toString());
+        b.putString("lng", binding.MatchLng.getText().toString());
+        b.putString("name", binding.MatchName.getText().toString());
         intent.putExtras(b);
-        itemView.getContext().startActivity(intent);
+        v.getContext().startActivity(intent);
+    }
 
+    public void bind(@NonNull MatchesObject match) {
+        binding.MatchId.setText(match.getUserId());
+        binding.MatchName.setText(match.getName());
+        binding.MatchLat.setText(match.getLat());
+        binding.MatchLng.setText(match.getLng());
+        binding.MatchPhone.setText(match.getPhone());
+        binding.MatchUploadUserName.setText(match.getUploadUserName());
+        if (!match.getUploadUri().equals("default")){
+            Glide.with(binding.getRoot().getContext()).load(match.getUploadUri()).into(binding.MatchImage);
+        }
     }
 }

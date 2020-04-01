@@ -1,6 +1,7 @@
 package com.pp.photop.Matches;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,42 +15,39 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.pp.photop.R;
+import com.pp.photop.databinding.ActivityMatchesBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MatchesActivity extends AppCompatActivity {
-    private RecyclerView mRecyclerView;
+    private static final String TAG = MatchesActivity.class.getSimpleName();
+
     private RecyclerView.Adapter mMatchesAdapter;
-    private RecyclerView.LayoutManager mMatchesLayoutManager;
     private GeoFire geoFire;
     private DatabaseReference geoFireDb;
     private String currentUserID;
 
+    private ActivityMatchesBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_matches);
+        binding = ActivityMatchesBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         geoFireDb = FirebaseDatabase.getInstance().getReference().child("GeoFire");
         geoFire = new GeoFire(geoFireDb);
 
         currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        mRecyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        mRecyclerView.setNestedScrollingEnabled(false);
-        mRecyclerView.setHasFixedSize(true);
-        mMatchesLayoutManager = new LinearLayoutManager(MatchesActivity.this);
-        mRecyclerView.setLayoutManager(mMatchesLayoutManager);
+        binding.recyclerView.setHasFixedSize(true);
+        binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mMatchesAdapter = new MatchesAdapter(getDataSetMatches(), MatchesActivity.this);
-        mRecyclerView.setAdapter((mMatchesAdapter));
+        mMatchesAdapter = new MatchesAdapter(getDataSetMatches());
+        binding.recyclerView.setAdapter((mMatchesAdapter));
 
         getUserMatchId();
-
-
 
 //        MatchesObject obj = new MatchesObject("asd");
 //        resultsMatches.add(obj);
@@ -82,33 +80,17 @@ public class MatchesActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()){
-                    String userId = dataSnapshot.getKey();
-                    String name = "";
-                    String foodImageUrl = "";
-                    String lat = "";
-                    String lng = "";
-                    String uploadUserName = "Default";
-                    String phone = "605-555-5555";
+                    MatchesObject obj = dataSnapshot.getValue(MatchesObject.class);
+                    if( obj == null ) {
+                        Log.d(TAG, "MatchesObject was null!");
+                        return;
+                    }
 
-                    if (dataSnapshot.child("name").getValue() != null){
-                        name = dataSnapshot.child("name").getValue().toString();
-                    }
-                    if (dataSnapshot.child("uploadUri").getValue() != null){
-                        foodImageUrl = dataSnapshot.child("uploadUri").getValue().toString();
-                    }
-                    if (dataSnapshot.child("uploadUserName").getValue() != null){
-                        uploadUserName = dataSnapshot.child("uploadUserName").getValue().toString();
-                    }
-                    if (dataSnapshot.child("lat").getValue() != null){
-                        lat = dataSnapshot.child("lat").getValue().toString();
-                    }
-                    if (dataSnapshot.child("phone").getValue() != null){
-                        phone = dataSnapshot.child("phone").getValue().toString();
-                    }
-                    if (dataSnapshot.child("lng").getValue() != null){
-                        lng = dataSnapshot.child("lng").getValue().toString();
-                    }
-                    MatchesObject obj = new MatchesObject(userId, name, foodImageUrl, lat, lng, uploadUserName, phone);
+                    //we have to set this separately because it's not part of the db structure
+                    obj.setUserId(dataSnapshot.getKey());
+
+                    //set some defaults if returned value was null
+                    obj.setDefaultsWhenNull("", "", "", "", "Default", "605-555-5555");
 
                     resultsMatches.add(obj);
                     mMatchesAdapter.notifyDataSetChanged();
@@ -123,7 +105,7 @@ public class MatchesActivity extends AppCompatActivity {
         });
     }
 
-    private ArrayList<MatchesObject> resultsMatches = new ArrayList<MatchesObject>();
+    private ArrayList<MatchesObject> resultsMatches = new ArrayList<>();
     private List<MatchesObject> getDataSetMatches() {
         return resultsMatches;
     }
